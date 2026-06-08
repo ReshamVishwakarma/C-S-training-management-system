@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class Trainee(Document):
-	_DOCTYPE_NAME = "Training Participant"
+class TrainingCourse(Document):
+	pass

@@ -63,7 +63,7 @@
  "modified": "2026-06-08 14:58:25.221837",
  "modified_by": "Administrator",
  "module": "Training Portal",
- "name": "Trainee",
+"name": "Training Enrollment",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
