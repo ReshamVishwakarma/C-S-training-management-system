@@ -16,7 +16,9 @@
   "duration_hours",
   "meeting_link",
   "location",
-  "description"
+  "description",
+  "department",
+  "max_participants"
  ],
  "fields": [
   {
@@ -77,12 +79,23 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "max_participants",
+   "fieldtype": "Int",
+   "label": "Max Participants"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 11:27:00.490055",
+ "modified": "2026-06-08 15:07:05.757556",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Training Session",
