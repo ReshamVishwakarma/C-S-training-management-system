@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:training_name",
  "creation": "2026-06-06 15:32:45.664214",
@@ -16,7 +17,8 @@
   "meeting_link",
   "location",
   "description",
-  "training_course"
+  "department",
+  "max_participants"
  ],
  "fields": [
   {
@@ -79,17 +81,21 @@
    "label": "Description"
   },
   {
-   "fieldname": "training_course",
+   "fieldname": "department",
    "fieldtype": "Link",
-   "label": " Training Course",
-   "options": "Training Course",
-   "reqd": 1
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "max_participants",
+   "fieldtype": "Int",
+   "label": "Max Participants"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 16:09:24.266477",
+ "modified": "2026-06-08 15:07:05.757556",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Training Session",

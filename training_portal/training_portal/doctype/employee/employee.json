@@ -12,7 +12,10 @@
   "department",
   "email",
   "mobile_number",
-  "active"
+  "active",
+  "designation",
+  "status",
+  "date_of_joining"
  ],
  "fields": [
   {
@@ -47,12 +50,31 @@
    "fieldname": "active",
    "fieldtype": "Check",
    "label": "Active"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Designation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_of_joining",
+   "fieldtype": "Date",
+   "label": "Date of joining"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 11:44:44.753931",
+ "modified": "2026-06-08 14:51:59.447419",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Employee",

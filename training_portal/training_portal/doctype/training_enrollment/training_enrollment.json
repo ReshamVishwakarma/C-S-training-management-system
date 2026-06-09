@@ -19,7 +19,7 @@
    "fieldname": "training_session",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Training Session",
+   "label": "Trainee Name",
    "options": "Training Session",
    "reqd": 1
   },
@@ -60,10 +60,10 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 12:08:15.769408",
+ "modified": "2026-06-08 14:58:25.221837",
  "modified_by": "Administrator",
  "module": "Training Portal",
- "name": "Training Enrollment",
+"name": "Training Enrollment",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
