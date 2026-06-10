@@ -1,8 +1,37 @@
-// Copyright (c) 2026, C&S Electric and contributors
-// For license information, please see license.txt
+frappe.ui.form.on("Training Attendance", {
+    refresh(frm) {
 
-// frappe.ui.form.on("Training Attendance", {
-// 	refresh(frm) {
+        frm.add_custom_button("Fetch Enrollments", function () {
 
-// 	},
-// });
+            if (!frm.doc.training_session) {
+                frappe.msgprint("Please select Training Session");
+                return;
+            }
+
+            frappe.call({
+                method: "training_portal.training_portal.doctype.training_attendance.training_attendance.fetch_enrollments",
+                args: {
+                    training_session: frm.doc.training_session
+                },
+                callback: function(r) {
+
+                    frm.clear_table("attendance_details");
+
+                    (r.message || []).forEach(row => {
+
+                        let child = frm.add_child("attendance_details");
+
+                        child.employee = row.employee;
+                        child.employee_name = row.employee_name;
+                        child.attendance_status = row.attendance_status;
+                    });
+
+                    frm.doc.total_participants = frm.doc.attendance_details.length;
+
+                    frm.refresh_field("attendance_details");
+                    frm.refresh_field("total_participants");
+                }
+            });
+        });
+    }
+});

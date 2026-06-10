@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:employee_name",
  "creation": "2026-06-08 11:38:31.132365",
@@ -62,8 +61,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Status",
-   "reqd": 1
+   "label": "Status"
   },
   {
    "fieldname": "date_of_joining",
@@ -74,7 +72,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 14:51:59.447419",
+ "modified": "2026-06-10 15:26:40.407729",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Employee",

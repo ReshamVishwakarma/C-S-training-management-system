@@ -1,9 +1,32 @@
-# Copyright (c) 2026, C&S Electric and contributors
-# For license information, please see license.txt
-
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
 class TrainingAttendance(Document):
-	_DOCTYPE_NAME = "Training Attendance"
+    pass
+
+
+@frappe.whitelist()
+def fetch_enrollments(training_session):
+    enrollments = frappe.get_all(
+        "Training Enrollment",
+        filters={"training_session": training_session},
+        fields=["employee"]
+    )
+
+    rows = []
+
+    for enrollment in enrollments:
+        employee_name = frappe.db.get_value(
+            "Employee",
+            enrollment.employee,
+            "employee_name"
+        )
+
+        rows.append({
+            "employee": enrollment.employee,
+            "employee_name": employee_name,
+            "attendance_status": "Present"
+        })
+
+    return rows
