@@ -3,7 +3,26 @@ from frappe.model.document import Document
 
 
 class TrainingAttendance(Document):
-    pass
+
+    def validate(self):
+        self.calculate_attendance_summary()
+
+    def calculate_attendance_summary(self):
+
+        present = 0
+        absent = 0
+
+        for row in self.attendance_details:
+
+            if row.attendance_status in ["Present", "Late"]:
+                present += 1
+
+            elif row.attendance_status == "Absent":
+                absent += 1
+
+        self.present_count = present
+        self.absent_count = absent
+        self.total_participants = len(self.attendance_details)
 
 
 @frappe.whitelist()
