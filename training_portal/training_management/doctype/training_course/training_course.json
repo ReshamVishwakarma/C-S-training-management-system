@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:course_name",
  "creation": "2026-06-08 15:14:45.219506",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -15,7 +16,9 @@
   "duration_hours",
   "mandatory",
   "passing_percentage",
-  "active"
+  "active",
+  "course_type",
+  "validity_period_months"
  ],
  "fields": [
   {
@@ -28,7 +31,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Course Name",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "course_code",
@@ -81,15 +85,27 @@
    "fieldname": "active",
    "fieldtype": "Check",
    "label": "Active"
+  },
+  {
+   "fieldname": "course_type",
+   "fieldtype": "Select",
+   "label": "Course Type",
+   "options": "Technical\nSoft Skills\nSafety\nCompliance\nLeadership"
+  },
+  {
+   "fieldname": "validity_period_months",
+   "fieldtype": "Int",
+   "label": "Validity Period (Months)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 15:37:45.074660",
+ "modified": "2026-06-11 10:34:58.787883",
  "modified_by": "Administrator",
  "module": "Training Management",
  "name": "Training Course",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -109,5 +125,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "course_name"
 }

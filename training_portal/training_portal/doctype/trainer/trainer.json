@@ -15,7 +15,8 @@
   "status",
   "phone_number",
   "email",
-  "active"
+  "active",
+  "trainer_type"
  ],
  "fields": [
   {
@@ -68,12 +69,18 @@
    "fieldname": "active",
    "fieldtype": "Check",
    "label": "Active"
+  },
+  {
+   "fieldname": "trainer_type",
+   "fieldtype": "Select",
+   "label": "Trainer Type",
+   "options": "Internal\nExternal"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 10:56:57.613409",
+ "modified": "2026-06-11 10:31:57.058585",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Trainer",
