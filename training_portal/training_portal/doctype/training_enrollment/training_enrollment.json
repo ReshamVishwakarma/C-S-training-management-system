@@ -1,8 +1,7 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "allow_rename": 1,
- "autoname": "field:participant_id",
+ "autoname": "field:employee",
  "creation": "2026-06-08 11:30:38.330307",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -11,15 +10,14 @@
   "employee",
   "department",
   "assignment_date",
-  "completion_status",
-  "participant_id"
+  "completion_status"
  ],
  "fields": [
   {
    "fieldname": "training_session",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Trainee Name",
+   "label": "Training Session",
    "options": "Training Session",
    "reqd": 1
   },
@@ -33,6 +31,7 @@
    "unique": 1
   },
   {
+   "fetch_from": "employee.department",
    "fieldname": "department",
    "fieldtype": "Link",
    "label": "Department",
@@ -49,21 +48,15 @@
    "fieldtype": "Select",
    "label": "Completion Status",
    "options": "Assigned\nCompleted\nNot Completed"
-  },
-  {
-   "fieldname": "participant_id",
-   "fieldtype": "Data",
-   "label": "Participant ID",
-   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 14:58:25.221837",
+ "modified": "2026-06-10 14:36:37.233538",
  "modified_by": "Administrator",
  "module": "Training Portal",
-"name": "Training Enrollment",
+ "name": "Training Enrollment",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -85,5 +78,5 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "participant_id"
+ "title_field": "employee"
 }

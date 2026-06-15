@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:employee_name",
  "creation": "2026-06-08 11:38:31.132365",
