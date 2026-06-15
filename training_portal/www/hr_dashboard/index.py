@@ -58,3 +58,12 @@ def get_context(context):
        order_by="training_date asc",
        limit=5
     )
+
+    context.department_summary = frappe.db.sql("""
+      SELECT
+         department,
+         COUNT(name) as training_count
+      FROM `tabTraining Session`
+      GROUP BY department
+      ORDER BY training_count DESC
+      """, as_dict=True)

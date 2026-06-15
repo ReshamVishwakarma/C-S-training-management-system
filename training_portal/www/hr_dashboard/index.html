@@ -167,13 +167,14 @@ HR Dashboard
 
         </table>
     </div>
-</div>
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">Upcoming Trainings</h5>
     </div>
+   
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Upcoming Trainings</h5>
+        </div>
 
-    <div class="card-body">
+        <div class="card-body">
 
         <table class="table table-bordered">
 
@@ -198,6 +199,40 @@ HR Dashboard
                 </tr>
 
             {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        </div>
+    </div>
+
+    <div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Department-wise Training Summary</h5>
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-bordered">
+
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Total Trainings</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for d in department_summary %}
+
+                <tr>
+                    <td>{{ d.department }}</td>
+                    <td>{{ d.training_count }}</td>
+                </tr>
+
+                {% endfor %}
 
             </tbody>
 
