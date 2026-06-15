@@ -53,10 +53,12 @@ HR Dashboard
                 <label>Department</label>
 
                 <select class="form-control">
-                    <option>All Departments</option>
-                    <option>HR</option>
-                    <option>IT</option>
-                    <option>Sales</option>
+                   <option value="">All Departments</option>
+                    {% for d in departments %}
+                   <option value="{{ d.department_name }}">
+                    {{ d.department_name }}
+                   </option>
+                   {% endfor %}
                 </select>
             </div>
 
@@ -168,32 +170,34 @@ HR Dashboard
 </div>
 <div class="card mt-4">
     <div class="card-header">
-        Upcoming Trainings
+        <h5 class="mb-0">Upcoming Trainings</h5>
     </div>
 
     <div class="card-body">
 
-        <table class="table">
+        <table class="table table-bordered">
 
             <thead>
                 <tr>
                     <th>Training</th>
                     <th>Date</th>
+                    <th>Trainer</th>
                     <th>Department</th>
                 </tr>
             </thead>
 
             <tbody>
 
-                {% for s in recent_sessions %}
+            {% for s in upcoming_sessions %}
 
                 <tr>
                     <td>{{ s.training_name }}</td>
                     <td>{{ s.training_date }}</td>
-                    <td>HR</td>
+                    <td>{{ s.trainer }}</td>
+                    <td>{{ s.department }}</td>
                 </tr>
 
-                {% endfor %}
+            {% endfor %}
 
             </tbody>
 
@@ -201,7 +205,6 @@ HR Dashboard
 
     </div>
 </div>
-
 </div>
 
 {% endblock %}

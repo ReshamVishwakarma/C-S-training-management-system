@@ -37,3 +37,24 @@ def get_context(context):
     order_by="creation desc",
     limit=5
    )
+    
+    context.departments = frappe.get_all(
+       "Department",
+       fields=["department_name"],
+       order_by="department_name"
+    )
+
+    context.upcoming_sessions = frappe.get_all(
+       "Training Session",
+       filters={
+       "status": "Scheduled"
+       },
+       fields=[
+        "training_name",
+        "training_date",
+        "trainer",
+        "department"
+       ],
+       order_by="training_date asc",
+       limit=5
+    )
