@@ -1,0 +1,89 @@
+{% extends "templates/web.html" %}
+
+{% block title %}
+HR Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<style>
+.dashboard-header{
+    background:#1f4d7a;
+    color:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:25px;
+}
+
+.dashboard-header h2,
+.dashboard-header p{
+    color:white;
+}
+
+.stat-card{
+    border:none;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    transition:.2s;
+}
+
+.stat-card:hover{
+    transform:translateY(-3px);
+}
+
+.stat-number{
+    font-size:2rem;
+    font-weight:700;
+}
+</style>
+
+<div class="container mt-4">
+
+    <div class="dashboard-header">
+        <h2>HR Dashboard</h2>
+        <p>Welcome {{ user }}</p>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-primary">
+                    {{ total_employees }}
+                </div>
+                <div>Employees</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-success">
+                    {{ total_trainers }}
+                </div>
+                <div>Trainers</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-warning">
+                    {{ total_courses }}
+                </div>
+                <div>Courses</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-danger">
+                    92%
+                </div>
+                <div>Attendance</div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

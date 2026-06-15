@@ -1,0 +1,320 @@
+{% extends "templates/web.html" %}
+
+{% block navbar %}
+{% endblock %}
+
+{% block page_content %}
+
+<style>
+
+body{
+    background:#f4f6f9;
+}
+
+.sidebar{
+    background:#1f4d7a;
+    min-height:100vh;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+}
+
+.sidebar h4{
+    color:white;
+    margin-bottom:25px;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:10px;
+    border-radius:6px;
+    margin-bottom:8px;
+}
+
+.sidebar a:hover{
+    background:rgba(255,255,255,.15);
+}
+
+.dashboard-header{
+    background:#1f4d7a;
+    color:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    border:none;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    transition:.2s;
+}
+
+.stat-card:hover{
+    transform:translateY(-3px);
+}
+
+.stat-number{
+    font-size:2rem;
+    font-weight:700;
+}
+
+.section-card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    margin-top:25px;
+}
+
+</style>
+
+<div class="container-fluid mt-3">
+
+    <div class="row">
+
+        <!-- Sidebar -->
+
+        <div class="col-md-2">
+
+            <div class="sidebar">
+
+                <h4>Training Portal</h4>
+
+                <a href="/employee_dashboard">🏠 Dashboard</a>
+
+                <a href="#">📚 My Trainings</a>
+
+                <a href="#">📅 Attendance</a>
+
+                <a href="#">🏆 Certificates</a>
+
+                <a href="#">👤 Profile</a>
+
+            </div>
+
+        </div>
+
+        <!-- Main Content -->
+
+        <div class="col-md-10">
+
+            <!-- Header -->
+
+            <div class="dashboard-header">
+
+                <h2>Employee Dashboard</h2>
+
+                {% if employee %}
+
+                    <p>
+                        Welcome {{ employee.employee_name }}
+                    </p>
+
+                    <small>
+                        {{ employee.designation }}
+                        |
+                        {{ employee.department }}
+                    </small>
+
+                {% else %}
+
+                    <p>
+                        Welcome {{ user }}
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+            <!-- KPI Cards -->
+
+            <div class="row">
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-primary">
+                            {{ total_trainings }}
+                        </div>
+
+                        <div>
+                            My Trainings
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-success">
+                            {{ completed_trainings }}
+                        </div>
+
+                        <div>
+                            Completed Courses
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-warning">
+                            {{ certificates }}
+                        </div>
+
+                        <div>
+                            Certificates
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-danger">
+                            {{ attendance_percentage }}%
+                        </div>
+
+                        <div>
+                            Attendance
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Upcoming Trainings -->
+
+            <div class="section-card">
+
+                <h4>Upcoming Trainings</h4>
+
+                <hr>
+
+                {% if upcoming_trainings %}
+
+                <table class="table table-hover">
+
+                    <thead>
+
+                        <tr>
+                            <th>Training</th>
+                            <th>Date</th>
+                            <th>Trainer</th>
+                            <th>Mode</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for training in upcoming_trainings %}
+
+                        <tr>
+
+                            <td>
+                                {{ training.training_name }}
+                            </td>
+
+                            <td>
+                                {{ training.training_date }}
+                            </td>
+
+                            <td>
+                                {{ training.trainer }}
+                            </td>
+
+                            <td>
+                                {{ training.training_mode }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                {% else %}
+
+                    <p>No upcoming trainings available.</p>
+
+                {% endif %}
+
+            </div>
+
+            <!-- My Trainings -->
+
+            <div class="section-card">
+
+                <h4>My Training Enrollments</h4>
+
+                <hr>
+
+                {% if my_trainings %}
+
+                <table class="table table-bordered">
+
+                    <thead>
+
+                        <tr>
+                            <th>Training Session</th>
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in my_trainings %}
+
+                        <tr>
+
+                            <td>
+                                {{ row.training_session }}
+                            </td>
+
+                            <td>
+                                {{ row.completion_status }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                {% else %}
+
+                    <p>No training enrollments found.</p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

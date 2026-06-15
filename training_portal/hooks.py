@@ -5,6 +5,10 @@ app_description = "Learning Management System for C&S Electric"
 app_email = "reshamofficial123@gmail.com"
 app_license = "mit"
 
+website_route_rules = [
+    {"from_route": "/training-portal", "to_route": "training_portal_home"},
+]
+
 # Apps
 # ------------------
 

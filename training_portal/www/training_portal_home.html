@@ -1,0 +1,110 @@
+{% extends "templates/web.html" %}
+{% block title %}C&S Electric Training Portal{% endblock %}
+
+{% block page_content %}
+<style>
+    body { background-color: #f4f6fb; font-family: 'Segoe UI', sans-serif; }
+    header.navbar, .navbar.navbar-expand-lg { display: none !important; }
+    .web-footer, footer { display: none !important; }
+    
+    .navbar-custom { 
+        background-color: #1a3c5e; 
+        padding: 12px 0; 
+        margin: -15px -15px 0 -15px; 
+    }
+    .navbar-custom a { color: white !important; margin-left: 24px; text-decoration: none; }
+    
+    .hero { 
+        background-color: #1f4d7a;
+        color: white; 
+        padding: 60px 0; 
+        margin: 0 -15px 30px -15px;
+    }
+    .hero h1, .hero p { color: white !important; }
+    
+    .stat-card { border-radius: 12px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); }
+    .stat-number { font-size: 2.5rem; font-weight: 700; }
+    .session-card { border-radius: 12px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 16px; padding: 20px; }
+    .section-title { font-weight: 700; color: #1a3c5e; margin-bottom: 24px; }
+    .badge-online { background-color: #e3f2fd; color: #1565c0; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-offline { background-color: #f3e5f5; color: #6a1b9a; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+    .enroll-btn { background-color: #1a3c5e; color: white; border: none; border-radius: 8px; padding: 8px 20px; text-decoration: none; }
+    .enroll-btn:hover { background-color: #2d6a9f; color: white; }
+</style>
+
+<!-- Navbar -->
+<nav class="navbar-custom mb-0">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-white fs-5">C&S Electric — Training Portal</span>
+        <div class="d-flex gap-4 ms-4">
+            <a href="/training-portal">Home</a>
+            <a href="/training-portal/sessions">Sessions</a>
+            <a href="/training-portal/my_enrollments">My Enrollments</a>
+            <a href="/me">My Account</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="container">
+        <h1 class="fw-bold">Welcome to C&S Electric LCMS</h1>
+        <p class="lead mb-0">Learning & Competency Management System</p>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="container">
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card p-4 text-center">
+                <div class="stat-number text-primary">{{ total_sessions }}</div>
+                <div class="text-muted">Active Sessions</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card p-4 text-center">
+                <div class="stat-number text-success">{{ total_courses }}</div>
+                <div class="text-muted">Total Courses</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card p-4 text-center">
+                <div class="stat-number text-warning">{{ total_trainers }}</div>
+                <div class="text-muted">Trainers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sessions List -->
+    <h4 class="section-title">Upcoming Training Sessions</h4>
+
+    {% if training_sessions %}
+        {% for session in training_sessions %}
+        <div class="card session-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1 fw-bold">{{ session.training_name }}</h5>
+                    <small class="text-muted">
+                        📅 {{ session.training_date or 'TBD' }} &nbsp;|&nbsp;
+                        👤 {{ session.trainer or 'TBD' }} &nbsp;|&nbsp;
+                        🏢 {{ session.department or 'All Departments' }}
+                    </small>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge-{{ 'online' if session.training_mode == 'Online' else 'offline' }}">
+                        {{ session.training_mode or 'TBD' }}
+                    </span>
+                    <a href="/training-portal/enroll?session={{ session.name }}" class="enroll-btn ms-2">
+                        Enroll
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-4 text-muted">No upcoming sessions found.</div>
+    {% endif %}
+</div>
+{% endblock %}

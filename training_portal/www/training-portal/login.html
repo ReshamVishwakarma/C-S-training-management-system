@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C&S Electric LCMS — Sign In</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { height: 100vh; display: flex; font-family: 'Segoe UI', sans-serif; }
+        .left-panel { width: 50%; padding: 60px; display: flex; flex-direction: column; justify-content: center; background: white; }
+        .right-panel { width: 50%; background: linear-gradient(135deg, #1a3c5e, #2d6a9f); color: white; display: flex; flex-direction: column; justify-content: center; padding: 60px; }
+        .logo { font-size: 1.2rem; font-weight: 700; color: #1a3c5e; margin-bottom: 8px; }
+        .logo span { display: block; font-size: 0.85rem; font-weight: 400; color: #666; }
+        h2 { font-size: 2rem; font-weight: 700; color: #1a3c5e; margin: 32px 0 8px; }
+        .subtitle { color: #666; margin-bottom: 28px; }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .role-card { border: 2px solid #e0e0e0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s; }
+        .role-card:hover { border-color: #2d6a9f; background: #f0f7ff; }
+        .role-card.active { border-color: #1a3c5e; background: #e8f0fe; }
+        .role-card .role-title { font-weight: 600; font-size: 0.95rem; color: #1a3c5e; }
+        .role-card .role-desc { font-size: 0.78rem; color: #888; margin-top: 2px; }
+        .form-label { font-weight: 500; color: #333; }
+        .form-control { border-radius: 8px; padding: 10px 14px; border: 1.5px solid #e0e0e0; }
+        .form-control:focus { border-color: #2d6a9f; box-shadow: none; }
+        .btn-login { background: #1a3c5e; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; width: 100%; margin-top: 8px; }
+        .btn-login:hover { background: #2d6a9f; color: white; }
+        .error-msg { color: red; font-size: 0.85rem; margin-top: 8px; display: none; }
+        .right-panel h2 { color: white; font-size: 2.2rem; }
+        .right-panel p { color: rgba(255,255,255,0.8); margin-top: 12px; }
+        .role-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+        .role-badge { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+        .role-badge h6 { color: white; font-weight: 600; margin-bottom: 4px; }
+        .role-badge small { color: rgba(255,255,255,0.7); }
+    </style>
+</head>
+<body>
+
+<!-- Left Panel -->
+<div class="left-panel">
+    <div class="logo">
+        C&S Electric Ltd.
+        <span>Learning & Competency Management</span>
+    </div>
+
+    <div style="background:#e8f0fe; color:#1a3c5e; font-size:0.75rem; font-weight:600; padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:0;">
+        LCMS PLATFORM
+    </div>
+
+    <h2>Sign in to your workspace.</h2>
+    <p class="subtitle">Choose your role to access the right tools, dashboards, and permissions.</p>
+
+    <!-- Role Selection -->
+    <div class="role-grid">
+        <div class="role-card active" onclick="selectRole(this, 'Employee')">
+            <div class="role-title">👤 Employee</div>
+            <div class="role-desc">Learn, take assessments, earn certificates</div>
+        </div>
+        <div class="role-card" onclick="selectRole(this, 'Trainer')">
+            <div class="role-title">🎓 Trainer</div>
+            <div class="role-desc">Conduct sessions, evaluate, track attendance</div>
+        </div>
+        <div class="role-card" onclick="selectRole(this, 'Department Manager')">
+            <div class="role-title">📊 Department Manager</div>
+            <div class="role-desc">Approve, review team competencies</div>
+        </div>
+        <div class="role-card" onclick="selectRole(this, 'HR Administrator')">
+            <div class="role-title">🛡️ HR Administrator</div>
+            <div class="role-desc">Full system management & compliance</div>
+        </div>
+    </div>
+
+    <!-- Login Form -->
+    <div>
+        <label class="form-label">Corporate Email</label>
+        <input type="email" id="email" class="form-control mb-3" placeholder="you@cselectric.com">
+        <label class="form-label">Password</label>
+        <input type="password" id="password" class="form-control">
+        <div class="error-msg" id="error_msg">Invalid email or password. Please try again.</div>
+        <button class="btn-login mt-3" onclick="doLogin()">Sign In</button>
+    </div>
+</div>
+
+<!-- Right Panel -->
+<div class="right-panel">
+    <div style="background:rgba(255,255,255,0.15); display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; margin-bottom:20px;">
+        ROLE-BASED ACCESS
+    </div>
+    <h2>One platform.<br>Four roles.<br>Tailored experiences.</h2>
+    <p>Employees learn. Trainers deliver. Managers approve. HR runs the whole show — each with the right permissions and dashboards.</p>
+
+    <div class="role-badges">
+        <div class="role-badge">
+            <h6>🎓 Employee</h6>
+            <small>Learning · Assessments · Certificates</small>
+        </div>
+        <div class="role-badge">
+            <h6>📋 Trainer</h6>
+            <small>Sessions · Attendance · Evaluations</small>
+        </div>
+        <div class="role-badge">
+            <h6>📊 Manager</h6>
+            <small>Team · Approvals · Competency</small>
+        </div>
+        <div class="role-badge">
+            <h6>🛡️ HR Admin</h6>
+            <small>Full system management</small>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedRole = 'Employee';
+
+function selectRole(el, role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selectedRole = role;
+}
+
+function doLogin() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error_msg');
+
+    if (!email || !password) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Please enter email and password.';
+        return;
+    }
+
+    fetch('/api/method/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Frappe-CSRF-Token': 'fetch' },
+        body: JSON.stringify({ usr: email, pwd: password })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.message === 'Logged In') {
+            window.location.href = '/training-portal';
+        } else {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = 'Invalid email or password.';
+        }
+    })
+    .catch(() => {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Something went wrong. Please try again.';
+    });
+}
+</script>
+</body>
+</html>
+>

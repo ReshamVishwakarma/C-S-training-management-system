@@ -15,7 +15,8 @@
   "active",
   "designation",
   "status",
-  "date_of_joining"
+  "date_of_joining",
+  "user"
  ],
  "fields": [
   {
@@ -63,18 +64,25 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
+   "options": "Active\nInactive",
    "reqd": 1
   },
   {
    "fieldname": "date_of_joining",
    "fieldtype": "Date",
    "label": "Date of joining"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-08 14:51:59.447419",
+ "modified": "2026-06-12 14:29:14.081306",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Employee",
