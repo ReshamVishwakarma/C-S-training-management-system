@@ -44,9 +44,40 @@ HR Dashboard
         <p>Welcome {{ user }}</p>
     </div>
 
-    <div class="row">
+    <div class="card mb-4">
+    <div class="card-body">
 
-        <div class="col-md-3">
+        <div class="row">
+
+            <div class="col-md-4">
+                <label>Department</label>
+
+                <select class="form-control">
+                    <option>All Departments</option>
+                    <option>HR</option>
+                    <option>IT</option>
+                    <option>Sales</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label>From Date</label>
+                <input type="date" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+                <label>To Date</label>
+                <input type="date" class="form-control">
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+    <div class="row g-3">
+
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
             <div class="card stat-card p-3 text-center">
                 <div class="stat-number text-primary">
                     {{ total_employees }}
@@ -55,7 +86,7 @@ HR Dashboard
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
             <div class="card stat-card p-3 text-center">
                 <div class="stat-number text-success">
                     {{ total_trainers }}
@@ -64,7 +95,7 @@ HR Dashboard
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
             <div class="card stat-card p-3 text-center">
                 <div class="stat-number text-warning">
                     {{ total_courses }}
@@ -73,7 +104,7 @@ HR Dashboard
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
             <div class="card stat-card p-3 text-center">
                 <div class="stat-number text-danger">
                     92%
@@ -81,8 +112,95 @@ HR Dashboard
                 <div>Attendance</div>
             </div>
         </div>
+        
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-info">
+                 {{ total_sessions }}
+                </div>
+            <div>Training Sessions</div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-secondary">
+                   4
+                </div>
+                <div>Departments</div>
+             </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Recent Training Sessions</h5>
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-bordered">
+
+            <thead>
+                <tr>
+                    <th>Training Name</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for s in recent_sessions %}
+
+                <tr>
+                    <td>{{ s.training_name }}</td>
+                    <td>{{ s.training_date }}</td>
+                    <td>{{ s.status }}</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+</div>
+<div class="card mt-4">
+    <div class="card-header">
+        Upcoming Trainings
+    </div>
+
+    <div class="card-body">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Training</th>
+                    <th>Date</th>
+                    <th>Department</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for s in recent_sessions %}
+
+                <tr>
+                    <td>{{ s.training_name }}</td>
+                    <td>{{ s.training_date }}</td>
+                    <td>HR</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
 
     </div>
+</div>
 
 </div>
 
