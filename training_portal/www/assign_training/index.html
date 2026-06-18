@@ -1,0 +1,338 @@
+{% extends "training_portal/templates/trainer_base.html" %}
+
+{% block content_area %}
+<style>
+    .filter-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .form-control, .form-select {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 14px;
+        background-color: var(--bg-card);
+        color: var(--text-main);
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Table styles */
+    .lms-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .lms-table th {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px;
+        background-color: #f8fafc;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .lms-table td {
+        padding: 14px 16px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+
+    .lms-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .checkbox-col {
+        width: 48px;
+        text-align: center;
+    }
+
+    .checkbox-custom {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .btn-action {
+        background-color: var(--accent);
+        color: white;
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 10px;
+        border: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-action:hover {
+        background-color: var(--accent-hover);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-action:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+</style>
+
+<!-- Navigation Back -->
+<a href="/trainer_dashboard" class="btn btn-sm btn-outline-secondary mb-4" style="border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+
+<!-- Page Header -->
+<div class="page-header-widget">
+    <div class="page-title-group">
+        <h1>Assign Participants</h1>
+        <p>Enroll employees in scheduled training sessions in bulk</p>
+    </div>
+</div>
+
+<!-- Session Select & Filter Card -->
+<div class="filter-card">
+    <div class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+            <label for="session_select">Select Training Session *</label>
+            <select id="session_select" class="form-select" required>
+                <option value="">-- Choose Session --</option>
+                {% for s in sessions %}
+                    <option value="{{ s.name }}">{{ s.training_name }} ({{ s.training_date }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="dept_filter">Filter by Department</label>
+            <select id="dept_filter" class="form-select" onchange="onFilterChange()">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                    <option value="{{ d.name }}">{{ d.department_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="desig_filter">Filter by Designation</label>
+            <select id="desig_filter" class="form-select" onchange="onFilterChange()">
+                <option value="">All Designations</option>
+                {% for des in designations %}
+                    <option value="{{ des }}">{{ des }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Trainee Grid Selection -->
+<div class="lms-card">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h3 class="m-0" style="font-size: 18px; font-weight: 700; color: var(--primary);">Select Trainees</h3>
+        <div class="d-flex align-items-center gap-3">
+            <input type="text" id="employee-search" class="form-control" placeholder="Search by name or ID..." style="max-width: 250px; padding: 8px 12px; font-size: 13px;">
+            <span class="badge bg-light text-dark" id="selected-counter" style="font-size: 13px; font-weight: 600; padding: 6px 12px;">0 Selected</span>
+        </div>
+    </div>
+
+    <!-- Employee List -->
+    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <table class="lms-table">
+            <thead>
+                <tr>
+                    <th class="checkbox-col">
+                        <input type="checkbox" id="select-all" class="checkbox-custom" onchange="toggleSelectAll(this)">
+                    </th>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                </tr>
+            </thead>
+            <tbody id="employee-list-tbody">
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Use filters or click below to fetch employee database</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <a href="/trainer_dashboard" class="btn btn-outline-secondary" style="border-radius: 10px; padding: 12px 24px; font-weight: 600;">Cancel</a>
+        <button id="assign-btn" class="btn-action" disabled onclick="submitBulkAssignment()">
+            <i class="bi bi-check2-all"></i>
+            <span>Assign Selected Trainees</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    let employeeData = [];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Fetch all employees by default
+        fetchEmployees();
+        
+        // Setup client search
+        const searchInput = document.getElementById("employee-search");
+        if (searchInput) {
+            searchInput.addEventListener("input", function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                const rows = document.querySelectorAll(".employee-row-item");
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            });
+        }
+    });
+
+    function fetchEmployees() {
+        const dept = document.getElementById("dept_filter").value;
+        const desig = document.getElementById("desig_filter").value;
+        const tbody = document.getElementById("employee-list-tbody");
+        
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary me-2"></span>Loading employees...</td></tr>`;
+        
+        frappe.call({
+            method: "training_portal.www.assign_training.index.get_employees_list",
+            args: {
+                department: dept,
+                designation: desig
+            },
+            callback: function(r) {
+                tbody.innerHTML = "";
+                if (r.message && r.message.length) {
+                    employeeData = r.message;
+                    r.message.forEach(emp => {
+                        const tr = document.createElement("tr");
+                        tr.className = "employee-row-item";
+                        tr.innerHTML = `
+                            <td class="checkbox-col">
+                                <input type="checkbox" class="checkbox-custom emp-checkbox" value="${emp.name}" onchange="onCheckboxChange()">
+                            </td>
+                            <td style="font-weight: 600;">${emp.name}</td>
+                            <td>${emp.employee_name}</td>
+                            <td class="text-muted">${emp.department || "-"}</td>
+                            <td class="text-muted">${emp.designation || "-"}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    employeeData = [];
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No active employees found matching the filters.</td></tr>`;
+                }
+                document.getElementById("select-all").checked = false;
+                updateCounter();
+            }
+        });
+    }
+
+    function onFilterChange() {
+        fetchEmployees();
+    }
+
+    function toggleSelectAll(master) {
+        const checkboxes = document.querySelectorAll(".emp-checkbox");
+        checkboxes.forEach(cb => {
+            // Only check visible ones (that aren't hidden by search)
+            const row = cb.closest("tr");
+            if (row && row.style.display !== "none") {
+                cb.checked = master.checked;
+            }
+        });
+        updateCounter();
+    }
+
+    function onCheckboxChange() {
+        const checkboxes = document.querySelectorAll(".emp-checkbox");
+        const checked = document.querySelectorAll(".emp-checkbox:checked");
+        document.getElementById("select-all").checked = checkboxes.length === checked.length;
+        updateCounter();
+    }
+
+    function updateCounter() {
+        const checked = document.querySelectorAll(".emp-checkbox:checked");
+        document.getElementById("selected-counter").textContent = `${checked.length} Selected`;
+        document.getElementById("assign-btn").disabled = checked.length === 0;
+    }
+
+    function submitBulkAssignment() {
+        const session = document.getElementById("session_select").value;
+        if (!session) {
+            frappe.msgprint({
+                title: __('Required Field'),
+                indicator: 'orange',
+                message: __('Please select a Training Session first.')
+            });
+            return;
+        }
+
+        const checkedBoxes = document.querySelectorAll(".emp-checkbox:checked");
+        const employeesList = Array.from(checkedBoxes).map(cb => cb.value);
+
+        document.getElementById("assign-btn").disabled = true;
+
+        frappe.call({
+            method: "training_portal.www.assign_training.index.bulk_assign",
+            args: {
+                session: session,
+                employees: JSON.stringify(employeesList)
+            },
+            callback: function(r) {
+                if (r.message && r.message.status === "success") {
+                    frappe.show_alert({message: r.message.message, color: "green"});
+                    setTimeout(() => {
+                        window.location.href = "/trainer_enrollments";
+                    }, 1000);
+                } else {
+                    frappe.msgprint({
+                        title: __('Error'),
+                        indicator: 'red',
+                        message: r.message ? r.message.message : __('Failed to perform assignment.')
+                    });
+                    document.getElementById("assign-btn").disabled = false;
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -15,7 +15,8 @@
   "designation",
   "status",
   "date_of_joining",
-  "user"
+  "user",
+  "attendance_percentage"
  ],
  "fields": [
   {
@@ -77,14 +78,19 @@
    "fieldtype": "Link",
    "label": "User",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "attendance_percentage",
+   "fieldtype": "Float",
+   "label": "Attendance Percentage",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
-
  "modified": "2026-06-12 14:29:14.081306",
-
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Employee",
