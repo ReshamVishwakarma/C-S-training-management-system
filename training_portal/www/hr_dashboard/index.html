@@ -50,17 +50,34 @@ HR Dashboard
         <div class="row">
 
             <div class="col-md-4">
-                <label>Department</label>
+            <label>Department</label>
 
-                <select class="form-control">
-                   <option value="">All Departments</option>
+            <form method="GET">
+
+                <select
+                    name="department"
+                    class="form-control"
+                    onchange="this.form.submit()">
+
+                    <option value="">All Departments</option>
+
                     {% for d in departments %}
-                   <option value="{{ d.department_name }}">
-                    {{ d.department_name }}
-                   </option>
-                   {% endfor %}
+
+                    <option
+                        value="{{ d.name }}"
+                        {% if selected_department == d.name %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ d.department_name }}
+                    </option>
+
+                    {% endfor %}
+
                 </select>
-            </div>
+
+            </form>
+        </div>
 
             <div class="col-md-4">
                 <label>From Date</label>

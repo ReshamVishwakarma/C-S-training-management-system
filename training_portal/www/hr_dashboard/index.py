@@ -20,6 +20,14 @@ def get_context(context):
 
     context.user = frappe.session.user
 
+    selected_department = frappe.form_dict.get("department")
+    context.selected_department = selected_department
+
+    filters = {}
+
+    if selected_department:
+      filters["department"] = selected_department
+
     context.total_employees = frappe.db.count("Employee")
     context.total_trainers = frappe.db.count("Trainer")
     context.total_courses = frappe.db.count("Training Course")
@@ -28,6 +36,7 @@ def get_context(context):
 
     context.recent_sessions = frappe.get_all(
     "Training Session",
+    filters=filters,
     fields=[
         "name",
         "training_name",
@@ -40,30 +49,47 @@ def get_context(context):
     
     context.departments = frappe.get_all(
        "Department",
-       fields=["department_name"],
+       fields=["name", "department_name"],
        order_by="department_name"
     )
 
+    upcoming_filters = {
+      "status": "Scheduled"
+    }
+
+    if selected_department:
+       upcoming_filters["department"] = selected_department
+
     context.upcoming_sessions = frappe.get_all(
        "Training Session",
-       filters={
-       "status": "Scheduled"
-       },
+       filters=upcoming_filters,
        fields=[
-        "training_name",
-        "training_date",
-        "trainer",
-        "department"
+           "training_name",
+           "training_date",
+           "trainer",
+           "department"
        ],
        order_by="training_date asc",
        limit=5
     )
 
-    context.department_summary = frappe.db.sql("""
-      SELECT
-         department,
-         COUNT(name) as training_count
-      FROM `tabTraining Session`
-      GROUP BY department
-      ORDER BY training_count DESC
-      """, as_dict=True)
+    if selected_department:
+      context.department_summary = frappe.db.sql("""
+        SELECT
+            department,
+            COUNT(name) as training_count
+        FROM `tabTraining Session`
+        WHERE department = %s
+        GROUP BY department
+        ORDER BY training_count DESC
+      """, (selected_department,), as_dict=True)
+
+    else:
+       context.department_summary = frappe.db.sql("""
+        SELECT
+            department,
+            COUNT(name) as training_count
+        FROM `tabTraining Session`
+        GROUP BY department
+        ORDER BY training_count DESC
+    """, as_dict=True)
