@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:trainer_name",
  "creation": "2026-06-06 15:09:26.850411",
@@ -16,7 +15,8 @@
   "phone_number",
   "email",
   "active",
-  "trainer_type"
+  "trainer_type",
+  "user"
  ],
  "fields": [
   {
@@ -75,12 +75,18 @@
    "fieldtype": "Select",
    "label": "Trainer Type",
    "options": "Internal\nExternal"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-11 10:31:57.058585",
+ "modified": "2026-06-16 12:40:09.568334",
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Trainer",

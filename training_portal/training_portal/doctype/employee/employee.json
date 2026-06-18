@@ -65,7 +65,7 @@
 
    "label": "Status",
    "options": "Active\nInactive",
-   "reqd": 1,
+   "reqd": 1
   },
   {
    "fieldname": "date_of_joining",

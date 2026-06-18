@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Trainer Attendance</title>
+
+    <style>
+
+        body{
+            background:#f5f7fb;
+            font-family:Arial,sans-serif;
+            margin:0;
+        }
+
+        .container-fluid{
+            width:95%;
+            margin:30px auto;
+        }
+
+        .row{
+            display:flex;
+            gap:30px;
+        }
+
+        .sidebar{
+            background:#1f4f82;
+            color:white;
+            border-radius:15px;
+            padding:30px 20px;
+            min-height:700px;
+        }
+
+        .sidebar h4{
+            margin-top:0;
+            margin-bottom:40px;
+            font-size:22px;
+        }
+
+        .sidebar a{
+            display:block;
+            color:white;
+            text-decoration:none;
+            padding:12px;
+            margin-bottom:10px;
+            border-radius:8px;
+            font-size:16px;
+        }
+
+        .sidebar a:hover{
+            background:rgba(255,255,255,.15);
+        }
+
+        .main-content{
+            flex:1;
+        }
+
+        .header{
+            background:#1f4f82;
+            color:white;
+            padding:35px;
+            border-radius:15px;
+            margin-bottom:25px;
+        }
+
+        .header h1{
+            margin:0;
+        }
+
+        .cards{
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:20px;
+            margin-bottom:25px;
+        }
+
+        .card{
+            background:white;
+            padding:20px;
+            border-radius:12px;
+            text-align:center;
+            box-shadow:0 2px 8px rgba(0,0,0,.08);
+        }
+
+        .card h2{
+            margin:0;
+            margin-bottom:10px;
+        }
+
+        .table-card{
+            background:white;
+            padding:25px;
+            border-radius:12px;
+            box-shadow:0 2px 8px rgba(0,0,0,.08);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        table th,
+        table td{
+            padding:12px;
+            border-bottom:1px solid #ddd;
+            text-align:left;
+        }
+
+        table th{
+            background:#f8f9fa;
+        }
+
+        .active-link{
+            background:rgba(255,255,255,.15);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- Sidebar -->
+
+        <div style="width:220px;">
+
+            <div class="sidebar">
+
+                <h4>Training Portal</h4>
+
+                <a href="/trainer_dashboard">
+                    🏠 Dashboard
+                </a>
+
+                <a href="/trainer_sessions">
+                    📚 Training Sessions
+                </a>
+
+                <a href="/trainer_attendance" class="active-link">
+                    📅 Attendance
+                </a>
+
+                <a href="/trainer_enrollments">
+                    👥 Enrollments
+                </a>
+
+                <a href="/trainer">
+                    👤 Trainer Profile
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Main Content -->
+
+        <div class="main-content">
+
+            <div class="header">
+
+                <h1>Attendance Dashboard</h1>
+
+                <br>
+
+                <h3>{{ trainer.trainer_name }}</h3>
+
+                <p>{{ trainer.department }}</p>
+
+            </div>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h2>{{ total_participants }}</h2>
+                    <p>Total Participants</p>
+                </div>
+
+                <div class="card">
+                    <h2 style="color:green;">
+                        {{ total_present }}
+                    </h2>
+                    <p>Present</p>
+                </div>
+
+                <div class="card">
+                    <h2 style="color:red;">
+                        {{ total_absent }}
+                    </h2>
+                    <p>Absent</p>
+                </div>
+
+                <div class="card">
+                    <h2 style="color:#1f4f82;">
+                        {{ attendance_percentage }}%
+                    </h2>
+                    <p>Attendance %</p>
+                </div>
+
+            </div>
+
+            <div class="table-card">
+
+                <h2>Training Attendance Records</h2>
+
+                <br>
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Session</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in records %}
+
+                        <tr>
+
+                            <td>{{ row.training_session }}</td>
+
+                            <td>{{ row.date }}</td>
+
+                            <td>{{ row.total_participants }}</td>
+
+                            <td>{{ row.present_count }}</td>
+
+                            <td>{{ row.absent_count }}</td>
+
+                            <td>
+                                <a href="/attendance_details?attendance={{ row.name }}">
+                                    View
+                                </a>
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,299 @@
+{% extends "templates/web.html" %}
+
+{% block navbar %}
+{% endblock %}
+
+{% block page_content %}
+
+<style>
+
+body{
+    background:#f5f7fb;
+}
+
+.sidebar{
+    background:#1f4f82;
+    color:white;
+    padding:30px 20px;
+    border-radius:15px;
+    min-height:700px;
+}
+
+.sidebar h4{
+    color:white;
+    margin-bottom:40px;
+    font-size:22px;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:8px;
+    font-size:16px;
+}
+
+.sidebar a:hover{
+    background:rgba(255,255,255,.15);
+}
+
+.active-link{
+    background:rgba(255,255,255,.15);
+}
+
+.dashboard-header{
+    background:#1f4f82;
+    color:white;
+    padding:35px;
+    border-radius:15px;
+    margin-bottom:25px;
+}
+
+.dashboard-header h2,
+.dashboard-header p,
+.dashboard-header small{
+    color:white;
+}
+
+.dashboard-header h2{
+    margin-bottom:30px;
+    font-size:3rem;
+    font-weight:700;
+}
+
+.stat-card{
+    background:white;
+    border:none;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.stat-number{
+    font-size:2rem;
+    font-weight:700;
+}
+
+.section-card{
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    margin-top:25px;
+}
+
+.table th{
+    background:#f8f9fa;
+}
+
+</style>
+
+<div class="container-fluid">
+
+    <div class="row g-3">
+
+        <!-- Sidebar -->
+
+        <div class="col-md-2">
+
+            <div class="sidebar">
+
+                <h4>Training Portal</h4>
+
+                <a href="/trainer_dashboard">
+                    🏠 Dashboard
+                </a>
+
+                <a href="/trainer_sessions" class="active-link">
+                    📚 Training Sessions
+                </a>
+
+                <a href="/trainer_attendance">
+                    📅 Attendance
+                </a>
+
+                <a href="/trainer_enrollments">
+                    👥 Enrollments
+                </a>
+
+                <a href="/trainer">
+                    👤 Trainer Profile
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Main Content -->
+
+        <div class="col-md-10">
+
+            <!-- Header -->
+
+            <div class="dashboard-header">
+
+                <h2>
+                    Training Sessions
+                </h2>
+
+                {% if trainer %}
+
+                    <p>
+                        <strong>{{ trainer.trainer_name }}</strong>
+                    </p>
+
+                    <small>
+                        {{ trainer.department }}
+                    </small>
+
+                {% endif %}
+
+            </div>
+
+            <!-- KPI Cards -->
+
+            <div class="row">
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-dark">
+                            {{ total_sessions }}
+                        </div>
+
+                        <div>
+                            Total Sessions
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-success">
+                            {{ today_sessions }}
+                        </div>
+
+                        <div>
+                            Today's Sessions
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-warning">
+                            {{ upcoming_sessions }}
+                        </div>
+
+                        <div>
+                            Upcoming Sessions
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card stat-card p-3 text-center">
+
+                        <div class="stat-number text-danger">
+                            {{ completed_sessions }}
+                        </div>
+
+                        <div>
+                            Completed Sessions
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Sessions Table -->
+
+            <div class="section-card">
+
+                <h3>
+                    My Training Sessions
+                </h3>
+
+                <hr>
+
+                {% if sessions %}
+
+                <table class="table table-hover">
+
+                    <thead>
+
+                        <tr>
+                            <th>Training</th>
+                            <th>Date</th>
+                            <th>Mode</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for session in sessions %}
+
+                        <tr>
+
+                            <td>{{ session.training_name }}</td>
+
+                            <td>{{ session.training_date }}</td>
+
+                            <td>{{ session.training_mode }}</td>
+
+                            <td>{{ session.status }}</td>
+
+                            <td>
+
+                                <a
+                                    href="/trainer_session_details?session={{ session.name }}"
+                                    class="btn btn-dark btn-sm"
+                                >
+                                    View
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                {% else %}
+
+                    <p>
+                        No training sessions assigned.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

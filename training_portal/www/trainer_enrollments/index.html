@@ -1,0 +1,290 @@
+{% extends "templates/web.html" %}
+
+{% block navbar %}
+{% endblock %}
+
+{% block page_content %}
+
+<style>
+
+body{
+    background:#f5f7fb;
+}
+
+.sidebar{
+    background:#1f4f82;
+    color:white;
+    border-radius:15px;
+    padding:30px 20px;
+    min-height:700px;
+}
+
+.sidebar h4{
+    margin-top:0;
+    margin-bottom:40px;
+    color:white;
+    font-size:22px;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:8px;
+    font-size:16px;
+}
+
+.sidebar a:hover{
+    background:rgba(255,255,255,.15);
+}
+
+.active-link{
+    background:rgba(255,255,255,.15);
+}
+
+.dashboard-header{
+    background:#1f4f82;
+    color:white;
+    padding:35px;
+    border-radius:15px;
+    margin-bottom:25px;
+}
+
+.dashboard-header h2,
+.dashboard-header p,
+.dashboard-header small{
+    color:white;
+}
+
+.stat-card{
+    background:white;
+    border:none;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.stat-number{
+    font-size:2rem;
+    font-weight:700;
+}
+
+.section-card{
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    margin-top:25px;
+}
+
+.table th{
+    background:#f8f9fa;
+}
+
+</style>
+
+<div class="container-fluid mt-3">
+
+```
+<div class="row">
+
+    <!-- Sidebar -->
+
+    <div class="col-md-2">
+
+        <div class="sidebar">
+
+            <h4>Training Portal</h4>
+
+            <a href="/trainer_dashboard">
+                🏠 Dashboard
+            </a>
+
+            <a href="/trainer_sessions">
+                📚 Training Sessions
+            </a>
+
+            <a href="/trainer_attendance">
+                📅 Attendance
+            </a>
+
+            <a href="/trainer_enrollments" class="active-link">
+                👥 Enrollments
+            </a>
+
+            <a href="/trainer">
+                👤 Trainer Profile
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Main Content -->
+
+    <div class="col-md-10">
+
+        <div class="dashboard-header">
+
+            <h2>
+                Training Enrollments
+            </h2>
+
+            {% if trainer %}
+
+            <p>
+                {{ trainer.trainer_name }}
+            </p>
+
+            <small>
+                {{ trainer.department }}
+            </small>
+
+            {% endif %}
+
+        </div>
+
+        <!-- KPI Cards -->
+
+        <div class="row">
+
+            <div class="col-md-3 mb-3">
+
+                <div class="card stat-card p-3 text-center">
+
+                    <div class="stat-number">
+                        {{ total_enrollments }}
+                    </div>
+
+                    <div>
+                        Total Enrollments
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3 mb-3">
+
+                <div class="card stat-card p-3 text-center">
+
+                    <div class="stat-number text-warning">
+                        {{ assigned }}
+                    </div>
+
+                    <div>
+                        Assigned
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3 mb-3">
+
+                <div class="card stat-card p-3 text-center">
+
+                    <div class="stat-number text-success">
+                        {{ completed }}
+                    </div>
+
+                    <div>
+                        Completed
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3 mb-3">
+
+                <div class="card stat-card p-3 text-center">
+
+                    <div class="stat-number text-primary">
+                        {{ in_progress }}
+                    </div>
+
+                    <div>
+                        In Progress
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Enrollment Table -->
+
+        <div class="section-card">
+
+            <h4>
+                Enrollment Records
+            </h4>
+
+            <hr>
+
+            {% if enrollments %}
+
+            <table class="table table-hover">
+
+                <thead>
+
+                    <tr>
+                        <th>Employee</th>
+                        <th>Training</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in enrollments %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.employee }}
+                        </td>
+
+                        <td>
+                            {{ row.training_session }}
+                        </td>
+
+                        <td>
+                            {{ row.department }}
+                        </td>
+
+                        <td>
+                            {{ row.completion_status }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+                <p>
+                    No enrollment records found.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

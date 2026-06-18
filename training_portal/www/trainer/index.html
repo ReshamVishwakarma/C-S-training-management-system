@@ -1,0 +1,146 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<style>
+
+.profile-header{
+    background:#1f4f82;
+    color:white;
+    padding:40px;
+    border-radius:15px;
+    margin-bottom:25px;
+}
+
+.card-box{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    margin-bottom:20px;
+}
+
+.stat-card{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.label{
+    font-weight:600;
+    color:#666;
+}
+
+.value{
+    font-size:18px;
+    margin-top:5px;
+}
+
+</style>
+
+<div class="container mt-4">
+
+    <div class="profile-header">
+
+        <h1>{{ trainer.trainer_name }}</h1>
+
+        <p>
+            {{ trainer.department or "Department Not Assigned" }}
+        </p>
+
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h2>{{ total_sessions }}</h2>
+                <p>Total Sessions</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h2>{{ total_trainees }}</h2>
+                <p>Total Trainees</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card-box">
+
+        <h3>Trainer Information</h3>
+        <hr>
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Trainer Name</div>
+                <div class="value">
+                    {{ trainer.trainer_name or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Department</div>
+                <div class="value">
+                    {{ trainer.department or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Designation</div>
+                <div class="value">
+                    {{ trainer.designation or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Expertise</div>
+                <div class="value">
+                    {{ trainer.expertise or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Phone Number</div>
+                <div class="value">
+                    {{ trainer.phone_number or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Email</div>
+                <div class="value">
+                    {{ trainer.email or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Trainer Type</div>
+                <div class="value">
+                    {{ trainer.trainer_type or "-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="label">Active</div>
+                <div class="value">
+                    {% if trainer.active %}
+                        Yes
+                    {% else %}
+                        No
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

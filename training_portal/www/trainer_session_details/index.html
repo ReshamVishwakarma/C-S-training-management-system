@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Training Session Details</title>
+
+    <style>
+
+        body{
+            background:#f5f7fb;
+            font-family:Arial, sans-serif;
+            margin:0;
+        }
+
+        .container{
+            max-width:1200px;
+            margin:30px auto;
+        }
+
+        .card{
+            background:white;
+            padding:25px;
+            border-radius:12px;
+            margin-bottom:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,.08);
+        }
+
+        .header{
+            background:#1f4f82;
+            color:white;
+        }
+
+        .header h1{
+            margin:0;
+            margin-bottom:10px;
+        }
+
+        .info-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:20px;
+        }
+
+        .info-box{
+            background:#f8f9fa;
+            padding:15px;
+            border-radius:8px;
+        }
+
+        .info-box label{
+            font-weight:bold;
+            display:block;
+            margin-bottom:6px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        table th,
+        table td{
+            padding:12px;
+            border-bottom:1px solid #ddd;
+            text-align:left;
+        }
+
+        table th{
+            background:#f5f5f5;
+        }
+
+        .back-btn{
+            display:inline-block;
+            margin-bottom:20px;
+            background:#1f4f82;
+            color:white;
+            text-decoration:none;
+            padding:10px 18px;
+            border-radius:6px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <a href="/trainer_sessions" class="back-btn">
+        ← Back to Sessions
+    </a>
+
+    <div class="card header">
+
+        <h1>{{ session.training_name }}</h1>
+
+        <p>
+            Trainer :
+            {{ trainer.trainer_name }}
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Session Information</h3>
+
+        <br>
+
+        <div class="info-grid">
+
+            <div class="info-box">
+                <label>Date</label>
+                {{ session.training_date }}
+            </div>
+
+            <div class="info-box">
+                <label>Mode</label>
+                {{ session.training_mode }}
+            </div>
+
+            <div class="info-box">
+                <label>Status</label>
+                {{ session.status }}
+            </div>
+
+            <div class="info-box">
+                <label>Department</label>
+                {{ session.department }}
+            </div>
+
+            <div class="info-box">
+                <label>Start Time</label>
+                {{ start_time }}
+            </div>
+
+            <div class="info-box">
+                <label>Duration (Hours)</label>
+                {{ session.duration_hours }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Participants</h3>
+
+        <br>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for row in enrollments %}
+
+                <tr>
+
+                    <td>{{ row.employee }}</td>
+
+                    <td>{{ row.department }}</td>
+
+                    <td>{{ row.completion_status }}</td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>
