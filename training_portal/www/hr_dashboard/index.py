@@ -21,12 +21,20 @@ def get_context(context):
     context.user = frappe.session.user
 
     selected_department = frappe.form_dict.get("department")
+    from_date = frappe.form_dict.get("from_date")
+    to_date = frappe.form_dict.get("to_date")
+
+    context.from_date = from_date
+    context.to_date = to_date
     context.selected_department = selected_department
 
     filters = {}
 
     if selected_department:
       filters["department"] = selected_department
+
+    if from_date and to_date:
+      filters["training_date"] = ["between", [from_date, to_date]]
 
     context.total_employees = frappe.db.count("Employee")
     context.total_trainers = frappe.db.count("Trainer")
@@ -59,6 +67,9 @@ def get_context(context):
 
     if selected_department:
        upcoming_filters["department"] = selected_department
+
+    if from_date and to_date:
+       upcoming_filters["training_date"] = ["between", [from_date, to_date]]
 
     context.upcoming_sessions = frappe.get_all(
        "Training Session",
