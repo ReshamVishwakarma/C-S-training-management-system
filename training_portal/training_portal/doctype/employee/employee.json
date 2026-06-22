@@ -15,7 +15,8 @@
   "designation",
   "status",
   "date_of_joining",
-  "user"
+  "user",
+  "attendance_percentage"
  ],
  "fields": [
   {
@@ -62,6 +63,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
+
    "label": "Status",
    "options": "Active\nInactive",
    "reqd": 1
@@ -76,6 +78,13 @@
    "fieldtype": "Link",
    "label": "User",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "attendance_percentage",
+   "fieldtype": "Float",
+   "label": "Attendance Percentage",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,

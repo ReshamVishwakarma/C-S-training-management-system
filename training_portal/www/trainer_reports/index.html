@@ -1,0 +1,511 @@
+{% extends "training_portal/templates/trainer_base.html" %}
+
+{% block content_area %}
+<style>
+    /* Tabs styling */
+    .tab-nav {
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 32px;
+        padding-bottom: 2px;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 12px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .tab-btn:hover {
+        color: var(--primary);
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .tab-btn.active {
+        color: var(--accent);
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: var(--accent);
+        border-radius: 99px;
+    }
+
+    /* Filter Panel */
+    .filter-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 32px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        align-items: end;
+    }
+
+    .filter-item label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .filter-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--text-main);
+        background-color: white;
+    }
+
+    .filter-control:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .lms-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .lms-table th {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 20px;
+        background-color: #f8fafc;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .lms-table td {
+        padding: 18px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+
+    .lms-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .progress-bar-wrapper {
+        height: 6px;
+        background-color: #f1f5f9;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 4px;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header-widget">
+    <div class="page-title-group">
+        <h1>Training Attendance Reports</h1>
+        <p>Monitor, filter, and export performance and completion rates</p>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="tab-nav">
+    <button class="tab-btn active" onclick="switchReport('session')">
+        <i class="bi bi-calendar-range-fill me-2"></i>Sessions Report
+    </button>
+    <button class="tab-btn" onclick="switchReport('employee')">
+        <i class="bi bi-people-fill me-2"></i>Employees Report
+    </button>
+    <button class="tab-btn" onclick="switchReport('department')">
+        <i class="bi bi-building-fill me-2"></i>Departments Report
+    </button>
+    <button class="tab-btn" onclick="switchReport('trainer')">
+        <i class="bi bi-person-workspace me-2"></i>Trainers Report
+    </button>
+</div>
+
+<!-- Filters Panel -->
+<div class="filter-panel">
+    <div class="filter-grid">
+        <!-- Search Input -->
+        <div class="filter-item">
+            <label for="filter-search">Search Keyword</label>
+            <input type="text" id="filter-search" class="filter-control" placeholder="Type name, ID..." oninput="applyClientSearch()">
+        </div>
+
+        <!-- Department Filter -->
+        <div class="filter-item">
+            <label for="filter-department">Department</label>
+            <select id="filter-department" class="filter-control" onchange="fetchReportData()">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                    <option value="{{ d.name }}">{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Trainer Filter -->
+        <div class="filter-item">
+            <label for="filter-trainer">Trainer</label>
+            <select id="filter-trainer" class="filter-control" onchange="fetchReportData()" {% if not is_admin %}disabled{% endif %}>
+                {% if is_admin %}
+                    <option value="">All Trainers</option>
+                    {% for t in trainers %}
+                        <option value="{{ t.name }}">{{ t.trainer_name }}</option>
+                    {% endfor %}
+                {% else %}
+                    {% for t in trainers %}
+                        <option value="{{ t.name }}" selected>{{ t.trainer_name }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+
+        <!-- Date Filters -->
+        <div class="filter-item">
+            <label for="filter-start-date">Start Date</label>
+            <input type="date" id="filter-start-date" class="filter-control" onchange="fetchReportData()">
+        </div>
+
+        <div class="filter-item">
+            <label for="filter-end-date">End Date</label>
+            <input type="date" id="filter-end-date" class="filter-control" onchange="fetchReportData()">
+        </div>
+
+        <!-- Actions -->
+        <div class="filter-item d-flex gap-2">
+            <button class="btn btn-outline-secondary w-100 py-2" style="border-radius: 8px; font-size: 13px; font-weight: 600;" onclick="clearFilters()">
+                Reset
+            </button>
+            <button class="btn btn-dark w-100 py-2" style="border-radius: 8px; font-size: 13px; font-weight: 600;" onclick="exportToCSV()">
+                <i class="bi bi-download me-1"></i>Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="lms-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 id="report-title" style="font-size: 18px; font-weight: 700; color: var(--primary);">Sessions Attendance Report</h3>
+        <span id="report-records-count" class="badge bg-light text-dark" style="font-size: 13px; font-weight: 600; padding: 6px 12px;">0 Records Found</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="lms-table" id="report-table">
+            <thead id="report-thead">
+                <!-- Filled dynamically -->
+            </thead>
+            <tbody id="report-tbody">
+                <!-- Filled dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="report-fallback" class="text-center py-5" style="display: none;">
+        <i class="bi bi-search" style="font-size: 40px; color: var(--text-muted); opacity: 0.5;"></i>
+        <p class="mt-3 text-muted" style="font-size: 14px; margin: 0;">No matching records found for the applied filters.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeReport = 'session';
+    let rawReportData = [];
+    let filteredReportData = [];
+
+    function switchReport(reportType) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const btn = document.querySelector(`.tab-nav button[onclick="switchReport('${reportType}')"]`);
+        if (btn) btn.classList.add('active');
+
+        activeReport = reportType;
+        
+        // Update Title
+        const titleMap = {
+            'session': 'Sessions Attendance Report',
+            'employee': 'Employees Attendance Report',
+            'department': 'Departments Attendance Report',
+            'trainer': 'Trainers Attendance Report'
+        };
+        document.getElementById('report-title').innerText = titleMap[reportType];
+
+        fetchReportData();
+    }
+
+    function clearFilters() {
+        document.getElementById('filter-search').value = '';
+        document.getElementById('filter-department').value = '';
+        document.getElementById('filter-start-date').value = '';
+        document.getElementById('filter-end-date').value = '';
+
+        {% if is_admin %}
+            document.getElementById('filter-trainer').value = '';
+        {% endif %}
+
+        fetchReportData();
+    }
+
+    function fetchReportData() {
+        const department = document.getElementById('filter-department').value;
+        const trainer = document.getElementById('filter-trainer').value;
+        const startDate = document.getElementById('filter-start-date').value;
+        const endDate = document.getElementById('filter-end-date').value;
+
+        frappe.call({
+            method: "training_portal.www.trainer_reports.index.get_reports_data",
+            args: {
+                report_type: activeReport,
+                department: department || null,
+                trainer: trainer || null,
+                start_date: startDate || null,
+                end_date: endDate || null
+            },
+            callback: function(r) {
+                rawReportData = r.message || [];
+                applyClientSearch();
+            }
+        });
+    }
+
+    function applyClientSearch() {
+        const query = document.getElementById('filter-search').value.toLowerCase().trim();
+        
+        if (!query) {
+            filteredReportData = [...rawReportData];
+        } else {
+            filteredReportData = rawReportData.filter(row => {
+                if (activeReport === 'session') {
+                    return row.session_id.toLowerCase().includes(query) || 
+                           row.session_name.toLowerCase().includes(query) || 
+                           row.trainer.toLowerCase().includes(query) ||
+                           row.department.toLowerCase().includes(query);
+                } else if (activeReport === 'employee') {
+                    return row.employee_id.toLowerCase().includes(query) || 
+                           row.employee_name.toLowerCase().includes(query) || 
+                           row.department.toLowerCase().includes(query) ||
+                           row.designation.toLowerCase().includes(query);
+                } else if (activeReport === 'department') {
+                    return row.department.toLowerCase().includes(query);
+                } else if (activeReport === 'trainer') {
+                    return row.trainer_id.toLowerCase().includes(query) || 
+                           row.trainer_name.toLowerCase().includes(query) ||
+                           row.department.toLowerCase().includes(query);
+                }
+                return false;
+            });
+        }
+
+        renderReportTable();
+    }
+
+    function renderReportTable() {
+        const thead = document.getElementById('report-thead');
+        const tbody = document.getElementById('report-tbody');
+        const fallback = document.getElementById('report-fallback');
+        const countBadge = document.getElementById('report-records-count');
+
+        tbody.innerHTML = '';
+        countBadge.innerText = `${filteredReportData.length} Records Found`;
+
+        if (filteredReportData.length === 0) {
+            fallback.style.display = 'block';
+            thead.innerHTML = '';
+            return;
+        }
+        fallback.style.display = 'none';
+
+        if (activeReport === 'session') {
+            thead.innerHTML = `
+                <tr>
+                    <th>Session ID</th>
+                    <th>Session Name</th>
+                    <th>Trainer</th>
+                    <th>Department</th>
+                    <th>Date</th>
+                    <th>Enrolled</th>
+                    <th>Present</th>
+                    <th>Attendance Rate</th>
+                </tr>
+            `;
+            filteredReportData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: var(--accent);">${row.session_id}</td>
+                    <td style="font-weight: 600;">${row.session_name}</td>
+                    <td>${row.trainer}</td>
+                    <td>${row.department}</td>
+                    <td style="color: var(--text-muted);">${row.date}</td>
+                    <td>${row.participants}</td>
+                    <td class="text-success" style="font-weight: 600;">${row.present}</td>
+                    <td>${renderProgressBar(row.rate)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else if (activeReport === 'employee') {
+            thead.innerHTML = `
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Enrolled Sessions</th>
+                    <th>Attended Count</th>
+                    <th>Attendance Rate</th>
+                </tr>
+            `;
+            filteredReportData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: var(--accent);">${row.employee_id}</td>
+                    <td style="font-weight: 600;">${row.employee_name}</td>
+                    <td>${row.department}</td>
+                    <td>${row.designation}</td>
+                    <td>${row.enrolled}</td>
+                    <td class="text-success" style="font-weight: 600;">${row.attended}</td>
+                    <td>${renderProgressBar(row.rate)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else if (activeReport === 'department') {
+            thead.innerHTML = `
+                <tr>
+                    <th>Department</th>
+                    <th>Total Enrollments</th>
+                    <th>Present logs</th>
+                    <th>Attendance Rate</th>
+                </tr>
+            `;
+            filteredReportData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: var(--primary);">${row.department}</td>
+                    <td>${row.enrolled}</td>
+                    <td class="text-success" style="font-weight: 600;">${row.attended}</td>
+                    <td>${renderProgressBar(row.rate)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else if (activeReport === 'trainer') {
+            thead.innerHTML = `
+                <tr>
+                    <th>Trainer ID</th>
+                    <th>Trainer Name</th>
+                    <th>Department</th>
+                    <th>Sessions Led</th>
+                    <th>Total Participants</th>
+                    <th>Total Present</th>
+                    <th>Average Attendance Rate</th>
+                </tr>
+            `;
+            filteredReportData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: var(--accent);">${row.trainer_id}</td>
+                    <td style="font-weight: 600;">${row.trainer_name}</td>
+                    <td>${row.department}</td>
+                    <td>${row.sessions_count}</td>
+                    <td>${row.participants}</td>
+                    <td class="text-success" style="font-weight: 600;">${row.present}</td>
+                    <td>${renderProgressBar(row.rate)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    }
+
+    function renderProgressBar(rate) {
+        let barColor = '#10b981'; // Green
+        if (rate < 60) {
+            barColor = '#ef4444'; // Red
+        } else if (rate < 85) {
+            barColor = '#f59e0b'; // Amber
+        }
+        return `
+            <div class="d-flex align-items-center gap-2">
+                <span style="font-weight: 600; min-width: 45px;">${rate}%</span>
+                <div class="progress-bar-wrapper flex-grow-1" style="height: 5px; margin: 0; min-width: 80px;">
+                    <div class="progress-bar-fill" style="width: ${rate}%; background-color: ${barColor};"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function exportToCSV() {
+        if (filteredReportData.length === 0) {
+            frappe.show_alert({ message: __('No data available to export.'), indicator: 'orange' });
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        let headers = [];
+        let keys = [];
+
+        if (activeReport === 'session') {
+            headers = ["Session ID", "Session Name", "Trainer", "Department", "Date", "Enrolled", "Present Count", "Attendance Percentage"];
+            keys = ["session_id", "session_name", "trainer", "department", "date", "participants", "present", "rate"];
+        } else if (activeReport === 'employee') {
+            headers = ["Employee ID", "Employee Name", "Department", "Designation", "Enrolled Sessions", "Attended Count", "Attendance Percentage"];
+            keys = ["employee_id", "employee_name", "department", "designation", "enrolled", "attended", "rate"];
+        } else if (activeReport === 'department') {
+            headers = ["Department", "Total Enrollments", "Present Logs", "Attendance Percentage"];
+            keys = ["department", "enrolled", "attended", "rate"];
+        } else if (activeReport === 'trainer') {
+            headers = ["Trainer ID", "Trainer Name", "Department", "Sessions Led", "Total Participants", "Total Present", "Average Attendance Percentage"];
+            keys = ["trainer_id", "trainer_name", "department", "sessions_count", "participants", "present", "rate"];
+        }
+
+        // Add headers row
+        csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\r\n";
+
+        // Add data rows
+        filteredReportData.forEach(row => {
+            const line = keys.map(k => {
+                let val = row[k] !== undefined && row[k] !== null ? String(row[k]) : "";
+                return `"${val.replace(/"/g, '""')}"`;
+            }).join(",");
+            csvContent += line + "\r\n";
+        });
+
+        // Trigger browser download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${activeReport}_attendance_report_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        switchReport('session');
+    });
+</script>
+{% endblock %}
