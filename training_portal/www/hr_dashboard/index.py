@@ -42,6 +42,22 @@ def get_context(context):
     context.total_sessions = frappe.db.count("Training Session")
     context.total_departments = frappe.db.count("Department")
 
+    attendance_data = frappe.db.sql("""
+      SELECT
+        SUM(total_participants) as total_participants,
+        SUM(present_count) as total_present
+      FROM `tabTraining Attendance`
+    """, as_dict=True)[0]
+
+    if attendance_data.total_participants:
+      context.attendance_percentage = round(
+        (attendance_data.total_present /
+         attendance_data.total_participants) * 100,
+        1
+      )
+    else:
+      context.attendance_percentage = 0
+
     context.recent_sessions = frappe.get_all(
     "Training Session",
     filters=filters,
