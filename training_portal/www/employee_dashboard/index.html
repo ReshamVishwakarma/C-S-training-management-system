@@ -3,69 +3,78 @@
 {% block page_content %}
 
 <style>
+    body {
+        background: #f4f6f9;
+    }
 
-body{
-    background:#f4f6f9;
-}
+    .sidebar {
+        background: #1f4d7a;
+        min-height: 100vh;
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+    }
 
-.sidebar{
-    background:#1f4d7a;
-    min-height:100vh;
-    color:white;
-    padding:20px;
-    border-radius:12px;
-}
+    .sidebar h4 {
+        color: white;
+        margin-bottom: 25px;
+    }
 
-.sidebar h4{
-    color:white;
-    margin-bottom:25px;
-}
+    .sidebar a {
+        display: block;
+        color: white;
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
 
-.sidebar a{
-    display:block;
-    color:white;
-    text-decoration:none;
-    padding:10px;
-    border-radius:6px;
-    margin-bottom:8px;
-}
+    .sidebar a:hover {
+        background: rgba(255, 255, 255, .15);
+    }
 
-.sidebar a:hover{
-    background:rgba(255,255,255,.15);
-}
+    .dashboard-header {
+        background: #1f4d7a;
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
 
-.dashboard-header{
-    background:#1f4d7a;
-    color:white;
-    padding:30px;
-    border-radius:12px;
-    margin-bottom:25px;
-}
+    .stat-card{
+        border:none;
+        border-radius:12px;
+        box-shadow:0 2px 10px rgba(0,0,0,.08);
+        transition:.2s;
+        min-height:130px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+    }
 
-.stat-card{
-    border:none;
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-    transition:.2s;
-}
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
 
-.stat-card:hover{
-    transform:translateY(-3px);
-}
+    .stat-number{
+        font-size:2.2rem;
+        font-weight:700;
+        margin-bottom:8px;
+    }
 
-.stat-number{
-    font-size:2rem;
-    font-weight:700;
-}
+    .stat-label{
+        font-size:1rem;
+        color:#555;
+        font-weight:500;
+    }
 
-.section-card{
-    background:white;
-    border-radius:12px;
-    padding:20px;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-    margin-top:25px;
-}
-
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+        margin-top: 25px;
+    }
 </style>
 
 <div class="container-fluid mt-3">
@@ -106,21 +115,21 @@ body{
 
                 {% if employee %}
 
-                    <p>
-                        Welcome {{ employee.employee_name }}
-                    </p>
+                <p>
+                    Welcome {{ employee.employee_name }}
+                </p>
 
-                    <small>
-                        {{ employee.designation }}
-                        |
-                        {{ employee.department }}
-                    </small>
+                <small>
+                    {{ employee.designation }}
+                    |
+                    {{ employee.department }}
+                </small>
 
                 {% else %}
 
-                    <p>
-                        Welcome {{ user }}
-                    </p>
+                <p>
+                    Welcome {{ user }}
+                </p>
 
                 {% endif %}
 
@@ -128,70 +137,61 @@ body{
 
             <!-- KPI Cards -->
 
-            <div class="row">
+            <div class="row g-3">
 
-                <div class="col-md-3 mb-3">
-
-                    <div class="card stat-card p-3 text-center">
-
+                <div class="col-md-4 col-lg">
+                    <div class="card stat-card text-center p-3">
                         <div class="stat-number text-primary">
                             {{ total_trainings }}
                         </div>
-
-                        <div>
+                        <div class="stat-label">
                             My Trainings
                         </div>
-
                     </div>
-
                 </div>
 
-                <div class="col-md-3 mb-3">
-
-                    <div class="card stat-card p-3 text-center">
-
+                <div class="col-md-4 col-lg">
+                    <div class="card stat-card text-center p-3">
                         <div class="stat-number text-success">
                             {{ completed_trainings }}
                         </div>
-
-                        <div>
+                        <div class="stat-label">
                             Completed Courses
                         </div>
-
                     </div>
-
                 </div>
 
-                <div class="col-md-3 mb-3">
-
-                    <div class="card stat-card p-3 text-center">
-
+                <div class="col-md-4 col-lg">
+                    <div class="card stat-card text-center p-3">
                         <div class="stat-number text-warning">
-                            {{ certificates }}
+                            {{ present_sessions }}
                         </div>
-
-                        <div>
-                            Certificates
+                        <div class="stat-label">
+                            Present Sessions
                         </div>
-
                     </div>
-
                 </div>
 
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 col-lg">
+                    <div class="card stat-card text-center p-3">
+                        <div class="stat-number text-danger">
+                            {{ absent_sessions }}
+                        </div>
+                        <div class="stat-label">
+                            Absent Sessions
+                        </div>
+                    </div>
+                </div>
 
-                    <div class="card stat-card p-3 text-center">
-
+                <div class="col-md-4 col-lg">
+                    <div class="card stat-card text-center p-3">
                         <div class="stat-number text-danger">
                             {{ attendance_percentage }}%
                         </div>
-
-                        <div>
-                            Attendance
+                        <div class="stat-label">
+                            Attendance %
                         </div>
-
                     </div>
-
                 </div>
 
             </div>
@@ -251,7 +251,7 @@ body{
 
                 {% else %}
 
-                    <p>No upcoming trainings available.</p>
+                <p>No upcoming trainings available.</p>
 
                 {% endif %}
 
@@ -302,7 +302,50 @@ body{
 
                 {% else %}
 
-                    <p>No training enrollments found.</p>
+                <p>No training enrollments found.</p>
+
+                {% endif %}
+
+            </div>
+
+            <div class="section-card">
+
+                <h4>Attendance History</h4>
+
+                <hr>
+
+                {% if attendance_history %}
+
+                <table class="table table-bordered">
+
+                    <thead>
+                        <tr>
+                            <th>Training Attendance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in attendance_history %}
+
+                        <tr>
+
+                            <td>{{ row.parent }}</td>
+
+                            <td>{{ row.attendance_status }}</td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                {% else %}
+
+                <p>No attendance records found.</p>
 
                 {% endif %}
 
@@ -313,5 +356,7 @@ body{
     </div>
 
 </div>
+
+
 
 {% endblock %}

@@ -1,0 +1,261 @@
+{% extends "training_portal/templates/trainer_base.html" %}
+
+{% block content_area %}
+<style>
+    .enrollment-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .kpi-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .kpi-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .kpi-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kpi-value {
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--primary);
+    }
+
+    .kpi-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+
+    .kpi-blue .kpi-icon { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .kpi-green .kpi-icon { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .kpi-amber .kpi-icon { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .kpi-purple .kpi-icon { background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+
+    /* Search & Filters */
+    .filter-section {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex-grow: 1;
+        min-width: 250px;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-card);
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .lms-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .lms-table th {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 20px;
+        background-color: #f8fafc;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .lms-table td {
+        padding: 18px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+
+    .lms-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .enroll-assigned { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .enroll-completed { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .enroll-notcompleted { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .enroll-inprogress { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+</style>
+
+<!-- Page Header -->
+<div class="page-header-widget">
+    <div class="page-title-group">
+        <h1>Enrollment Registry</h1>
+        <p>Manage employee training enrollments and progression statuses</p>
+    </div>
+    <div>
+        <a href="/assign_training" class="btn btn-primary" style="border-radius: 10px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-person-plus-fill"></i> Assign Training
+        </a>
+    </div>
+</div>
+
+<!-- KPI Summary Section -->
+<div class="enrollment-kpi-grid">
+    <div class="kpi-card kpi-purple">
+        <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ total_enrollments }}</span>
+            <span class="kpi-label">Total Enrolled</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="bi bi-bookmark-plus-fill"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ assigned }}</span>
+            <span class="kpi-label">Assigned</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-amber">
+        <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ in_progress }}</span>
+            <span class="kpi-label">In Progress</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ completed }}</span>
+            <span class="kpi-label">Completed</span>
+        </div>
+    </div>
+</div>
+
+<!-- Enrollment Table Card -->
+<div class="lms-card">
+    <!-- Filters / Search -->
+    <div class="filter-section">
+        <div class="search-input-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" id="enrollment-search" class="search-input" placeholder="Search by trainee name, session, department or status...">
+        </div>
+    </div>
+
+    <!-- Enrollments Registry Table -->
+    {% if enrollments %}
+        <div class="table-responsive">
+            <table class="lms-table" id="enrollments-table-elem">
+                <thead>
+                    <tr>
+                        <th>Trainee Employee</th>
+                        <th>Department</th>
+                        <th>Training Session</th>
+                        <th>Completion Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in enrollments %}
+                        <tr class="enrollment-row-item">
+                            <td class="trainee-cell" style="font-weight: 600; color: var(--primary);">
+                                {{ row.employee }}
+                            </td>
+                            <td class="department-cell" style="color: var(--text-muted);">
+                                {{ row.department or "-" }}
+                            </td>
+                            <td class="session-cell" style="font-weight: 500;">
+                                <a href="/trainer_session_details?session={{ row.training_session }}" style="color: var(--text-main); text-decoration: none;">
+                                    {{ row.training_session }}
+                                </a>
+                            </td>
+                            <td>
+                                {% set clean_status = row.completion_status.replace(' ', '') | lower %}
+                                <span class="status-badge enroll-{{ clean_status }}">
+                                    <i class="bi bi-circle-fill" style="font-size: 5px;"></i>
+                                    {{ row.completion_status }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-people-fill" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
+            <p class="mt-3 text-muted" style="font-size: 14px; margin: 0;">No enrollments found for your training sessions.</p>
+            <a href="/assign_training" class="btn btn-primary btn-sm mt-2" style="border-radius: 8px;">Assign First Trainee</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("enrollment-search");
+        const rows = document.querySelectorAll(".enrollment-row-item");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

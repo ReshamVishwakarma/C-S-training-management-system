@@ -23,7 +23,13 @@ def get_context(context):
     if not employee:
         context.total_trainings = 0
         context.completed_trainings = 0
+        context.certificates = 0
+        context.attendance_percentage = 0
+        context.present_sessions = 0
+        context.absent_sessions = 0
         context.upcoming_trainings = []
+        context.my_trainings = []
+
         return context
 
     context.total_trainings = frappe.db.count(
@@ -42,7 +48,35 @@ def get_context(context):
     )
 
     context.certificates = 0
-    context.attendance_percentage = 0
+
+    present_sessions = frappe.db.count(
+        "Attendance detail",
+        {
+            "employee": employee.name,
+            "attendance_status": ["in", ["Present", "Late"]]
+        }
+    )
+
+    absent_sessions = frappe.db.count(
+        "Attendance detail",
+        {
+            "employee": employee.name,
+            "attendance_status": "Absent"
+        }
+    )
+
+    total_sessions = present_sessions + absent_sessions
+
+    if total_sessions:
+        context.attendance_percentage = round(
+            (present_sessions / total_sessions) * 100,
+            2
+        )
+    else:
+        context.attendance_percentage = 0
+
+    context.present_sessions = present_sessions
+    context.absent_sessions = absent_sessions
 
     context.upcoming_trainings = frappe.get_all(
         "Training Session",
@@ -67,6 +101,17 @@ def get_context(context):
             "training_session",
             "completion_status",
             "assignment_date"
+        ]
+    )
+
+    context.attendance_history = frappe.get_all(
+        "Attendance detail",
+        filters={
+            "employee": employee.name
+        },
+        fields=[
+            "parent",
+            "attendance_status"
         ]
     )
 

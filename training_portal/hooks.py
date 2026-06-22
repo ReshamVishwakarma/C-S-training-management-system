@@ -149,26 +149,11 @@ website_route_rules = [
 # 	}
 # }
 
-# Scheduled Tasks
-# ---------------
-
-# scheduler_events = {
-# 	"all": [
-# 		"training_portal.tasks.all"
-# 	],
-# 	"daily": [
-# 		"training_portal.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"training_portal.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"training_portal.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"training_portal.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"hourly": [
+		"training_portal.training_portal.scheduler.auto_update_session_statuses"
+	]
+}
 
 # Testing
 # -------
