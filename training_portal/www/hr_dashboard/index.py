@@ -36,11 +36,26 @@ def get_context(context):
     if from_date and to_date:
       filters["training_date"] = ["between", [from_date, to_date]]
 
-    context.total_employees = frappe.db.count("Employee")
+    context.total_employees = frappe.db.sql("""
+      SELECT COUNT(DISTINCT employee)
+      FROM `tabAttendance detail`
+    """)[0][0]
     context.total_trainers = frappe.db.count("Trainer")
     context.total_courses = frappe.db.count("Training Course")
     context.total_sessions = frappe.db.count("Training Session")
-    context.total_departments = frappe.db.count("Department")
+    context.total_departments = frappe.db.sql("""
+      SELECT COUNT(DISTINCT department)
+      FROM `tabTraining Session`
+    """)[0][0]
+    context.upcoming_count = frappe.db.count(
+      "Training Session",
+      {"status": "Scheduled"}
+    )
+
+    context.total_training_hours = frappe.db.sql("""
+      SELECT IFNULL(SUM(duration_hours), 0)
+      FROM `tabTraining Session`
+    """)[0][0]
 
     attendance_data = frappe.db.sql("""
       SELECT

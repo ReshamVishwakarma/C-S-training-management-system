@@ -7,11 +7,76 @@ HR Dashboard
 {% block page_content %}
 
 <style>
+
+body{
+    background:#f8fafc;
+}
+
+.portal-layout{
+    display:flex;
+}
+
+.sidebar{
+    width:260px;
+    background:#0f172a;
+    min-height:100vh;
+    position:fixed;
+    left:0;
+    top:0;
+    padding:25px;
+    z-index:1000;
+}
+
+.sidebar-logo{
+    margin-bottom:40px;
+}
+
+.sidebar-logo h3{
+    color:white;
+}
+
+.sidebar-menu{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.sidebar-menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#cbd5e1;
+    text-decoration:none;
+    padding:14px 16px;
+    border-radius:10px;
+    font-weight:500;
+}
+
+.sidebar-menu a.active{
+    background:#2563eb;
+    color:white;
+}
+
+.sidebar-menu a:hover{
+    background:#2563eb;
+    color:white;
+}
+
+.main-content{
+    margin-left:280px;
+    width:100%;
+    padding:30px;
+}
+
 .dashboard-header{
-    background:#1f4d7a;
+    background:linear-gradient(
+    135deg,
+    #2563eb,
+    #3b82f6
+    );
     color:white;
     padding:30px;
-    border-radius:12px;
+    border-radius:16px;
     margin-bottom:25px;
 }
 
@@ -22,22 +87,75 @@ HR Dashboard
 
 .stat-card{
     border:none;
-    border-radius:12px;
+    border-radius:15px;
     box-shadow:0 2px 10px rgba(0,0,0,.08);
-    transition:.2s;
+    transition:0.3s;
 }
 
 .stat-card:hover{
-    transform:translateY(-3px);
+    transform:translateY(-4px);
 }
 
 .stat-number{
     font-size:2rem;
     font-weight:700;
 }
+
+.action-card{
+    border:none;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    height:100%;
+}
+
+.action-card:hover{
+    transform:translateY(-4px);
+    transition:0.3s;
+}
+
 </style>
 
-<div class="container mt-4">
+<div class="portal-layout">
+
+    <div class="sidebar">
+
+        <div class="sidebar-logo">
+
+          <div style="display:flex;align-items:center;gap:12px;">
+
+            <div style="
+              width:45px;
+              height:45px;
+              background:#2563eb;
+              border-radius:12px;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              color:white;
+              font-weight:bold;
+              font-size:20px;
+            ">
+            H
+            </div>
+              <h3 style="margin:0;color:white;">
+               HR Portal
+              </h3>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="/hr_dashboard" class="active">📊 Dashboard</a>
+            <a href="/training_sessions">📚 Training Sessions</a>
+            <a href="/attendance_analytics">✅ Attendance Analytics</a>
+            <a href="/employee_analytics">👥 Employee Analytics</a>
+            <a href="/reports">📈 Reports</a>
+            <a href="/departments">🏢 Departments</a>
+        </div>
+
+    </div>
+
+    <div class="main-content">
 
     <div class="dashboard-header">
         <h2>HR Dashboard</h2>
@@ -102,62 +220,102 @@ HR Dashboard
 
     </div>
 </div>
-    <div class="row g-3">
 
-        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-            <div class="card stat-card p-3 text-center">
-                <div class="stat-number text-primary">
-                    {{ total_employees }}
-                </div>
-                <div>Employees</div>
-            </div>
-        </div>
+<div class="row g-3">
 
-        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-            <div class="card stat-card p-3 text-center">
-                <div class="stat-number text-success">
-                    {{ total_trainers }}
-                </div>
-                <div>Trainers</div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="stat-number text-primary">
+                {{ total_employees }}
             </div>
-        </div>
-
-        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-            <div class="card stat-card p-3 text-center">
-                <div class="stat-number text-warning">
-                    {{ total_courses }}
-                </div>
-                <div>Courses</div>
-            </div>
-        </div>
-
-        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-            <div class="card stat-card p-3 text-center">
-                <div class="stat-number text-danger">
-                    {{ attendance_percentage }}%
-                </div>
-                <div>Attendance</div>
-            </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-            <div class="card stat-card p-3 text-center">
-                <div class="stat-number text-info">
-                 {{ total_sessions }}
-                </div>
-            <div>Training Sessions</div>
-            </div>
-        </div>
-
-        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-            <div class="card stat-card p-3 text-center">
-                <div class="stat-number text-secondary">
-                   {{ total_departments }}
-                </div>
-                <div>Departments</div>
-             </div>
+            <div>Employees Trained</div>
         </div>
     </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="stat-number text-success">
+                {{ total_training_hours }}
+            </div>
+            <div>Training Hours</div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="stat-number text-warning">
+                {{ upcoming_count }}
+            </div>
+            <div>Upcoming Trainings</div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="stat-number text-danger">
+                {{ attendance_percentage }}%
+            </div>
+            <div>Attendance %</div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="stat-number text-info">
+                {{ total_sessions }}
+            </div>
+            <div>Total Trainings</div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="stat-number text-secondary">
+                {{ total_departments }}
+            </div>
+            <div>Departments Participated</div>
+        </div>
+    </div>
+
+</div>
+
+    <div class="row mt-4">
+
+    <div class="col-md-6 mb-3">
+        <div class="action-card">
+
+            <h4>Create Training</h4>
+
+            <p>
+                Schedule and manage training sessions.
+            </p>
+
+            <a href="/app/training-session"
+               class="btn btn-primary">
+               Open Training Sessions
+            </a>
+
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="action-card">
+
+            <h4>Attendance Management</h4>
+
+            <p>
+                Track employee attendance records.
+            </p>
+
+            <a href="/app/training-attendance"
+               class="btn btn-success">
+               Manage Attendance
+            </a>
+
+        </div>
+    </div>
+
+</div>
 
     <div class="card mt-4">
     <div class="card-header">
