@@ -7,7 +7,7 @@ from frappe import _
 
 def get_context(context):
     roles = frappe.get_roles()
-    if not (any(r in roles for r in ["Trainer", "System Manager", "HR Manager", "HR User"])):
+    if not (any(r in roles for r in ["Trainer", "System Manager", "HR Manager", "HR User", "HR Administrator"])):
         frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
     trainer_user = frappe.session.user

@@ -1,429 +1,383 @@
 {% extends "templates/web.html" %}
 
-{% block title %}
-HR Dashboard
-{% endblock %}
-
 {% block page_content %}
 
 <style>
+
+.dashboard-title{
+    font-size:32px;
+    font-weight:700;
+    margin-bottom:25px;
+}
+
+.metric-card{
+    background:#fff;
+    border-radius:20px;
+    padding:25px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    border:1px solid #e5e7eb;
+}
+
+.metric-icon{
+    width:56px;
+    height:56px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+}
+
+.blue{
+    background:#dbeafe;
+}
+
+.green{
+    background:#dcfce7;
+}
+
+.orange{
+    background:#fef3c7;
+}
+
+.purple{
+    background:#ede9fe;
+}
+
+.metric-card{
+    background:#fff;
+    border-radius:20px;
+    padding:25px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    border:1px solid #e5e7eb;
+    transition:.3s;
+}
+
+.metric-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 25px rgba(0,0,0,.08);
+}
+
+.kpi-number{
+    font-size:32px;
+    font-weight:700;
+}
+
+.custom-card{
+    background:white;
+    border-radius:24px;
+    border:1px solid #e5e7eb;
+    box-shadow:none;
+    padding:24px;
+    margin-bottom:24px;
+    transition:.3s;
+}
+
+.custom-card:hover{
+    box-shadow:0 12px 30px rgba(0,0,0,.05);
+}
+
+table{
+    border-radius:12px;
+    overflow:hidden;
+}
+
+thead{
+    background:#f8fafc;
+}
+
+.hero-section{
+    background:linear-gradient(
+        135deg,
+        #4f46e5,
+        #7c3aed
+    );
+
+    color:white;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    margin-bottom:25px;
+}
 
 body{
     background:#f8fafc;
 }
 
-.portal-layout{
-    display:flex;
-}
-
-.sidebar{
-    width:260px;
-    background:#0f172a;
-    min-height:100vh;
-    position:fixed;
-    left:0;
-    top:0;
-    padding:25px;
-    z-index:1000;
-}
-
-.sidebar-logo{
-    margin-bottom:40px;
-}
-
-.sidebar-logo h3{
-    color:white;
-}
-
-.sidebar-menu{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-.sidebar-menu a{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    color:#cbd5e1;
-    text-decoration:none;
-    padding:14px 16px;
-    border-radius:10px;
-    font-weight:500;
-}
-
-.sidebar-menu a.active{
-    background:#2563eb;
-    color:white;
-}
-
-.sidebar-menu a:hover{
-    background:#2563eb;
-    color:white;
-}
-
-.main-content{
-    margin-left:280px;
-    width:100%;
-    padding:30px;
-}
-
-.dashboard-header{
-    background:linear-gradient(
-    135deg,
-    #2563eb,
-    #3b82f6
-    );
-    color:white;
-    padding:30px;
-    border-radius:16px;
-    margin-bottom:25px;
-}
-
-.dashboard-header h2,
-.dashboard-header p{
-    color:white;
-}
-
-.stat-card{
-    border:none;
-    border-radius:15px;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-    transition:0.3s;
-}
-
-.stat-card:hover{
-    transform:translateY(-4px);
-}
-
-.stat-number{
-    font-size:2rem;
-    font-weight:700;
-}
-
-.action-card{
-    border:none;
-    border-radius:15px;
-    padding:25px;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-    height:100%;
-}
-
-.action-card:hover{
-    transform:translateY(-4px);
-    transition:0.3s;
-}
-
 </style>
 
-<div class="portal-layout">
+<div class="container-fluid px-4 mt-4">
 
-    <div class="sidebar">
-
-        <div class="sidebar-logo">
-
-          <div style="display:flex;align-items:center;gap:12px;">
-
-            <div style="
-              width:45px;
-              height:45px;
-              background:#2563eb;
-              border-radius:12px;
-              display:flex;
-              align-items:center;
-              justify-content:center;
-              color:white;
-              font-weight:bold;
-              font-size:20px;
-            ">
-            H
-            </div>
-              <h3 style="margin:0;color:white;">
-               HR Portal
-              </h3>
-            </div>
-        </div>
-
-        <div class="sidebar-menu">
-            <a href="/hr_dashboard" class="active">📊 Dashboard</a>
-            <a href="/training_sessions">📚 Training Sessions</a>
-            <a href="/attendance_analytics">✅ Attendance Analytics</a>
-            <a href="/employee_analytics">👥 Employee Analytics</a>
-            <a href="/reports">📈 Reports</a>
-            <a href="/departments">🏢 Departments</a>
-        </div>
-
-    </div>
-
-    <div class="main-content">
-
-    <div class="dashboard-header">
-        <h2>HR Dashboard</h2>
-        <p>Welcome {{ user }}</p>
-    </div>
-
-    <div class="card mb-4">
-    <div class="card-body">
-
-        <form method="GET">
-
-            <div class="row">
-
-                <div class="col-md-4">
-                    <label>Department</label>
-
-                    <select name="department" class="form-control" onchange="this.form.submit()">
-
-                        <option value="">All Departments</option>
-
-                        {% for d in departments %}
-
-                        <option
-                            value="{{ d.name }}"
-                            {% if selected_department == d.name %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ d.department_name }}
-                        </option>
-
-                        {% endfor %}
-
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label>From Date</label>
-
-                    <input
-                        type="date"
-                        name="from_date"
-                        value="{{ from_date }}"
-                        class="form-control"
-                        onchange="this.form.submit()">
-                </div>
-
-                <div class="col-md-4">
-                    <label>To Date</label>
-
-                    <input
-                        type="date"
-                        name="to_date"
-                        value="{{ to_date }}"
-                        class="form-control"
-                        onchange="this.form.submit()">
-                </div>
-
-            </div>
-
-        </form>
-
-    </div>
+<!-- <div class="dashboard-title">
+HR Training Dashboard
+</div> -->
+<div class="hero-section">
+    <h2>HR Dashboard</h2>
+    <p>
+        Welcome back, {{ frappe.session.user }}
+    </p>
 </div>
 
-<div class="row g-3">
+<!-- Filters -->
 
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card stat-card p-3 text-center">
-            <div class="stat-number text-primary">
-                {{ total_employees }}
-            </div>
-            <div>Employees Trained</div>
-        </div>
-    </div>
+<form method="GET">
 
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card stat-card p-3 text-center">
-            <div class="stat-number text-success">
-                {{ total_training_hours }}
-            </div>
-            <div>Training Hours</div>
-        </div>
-    </div>
+<div class="custom-card mb-4">
 
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card stat-card p-3 text-center">
-            <div class="stat-number text-warning">
-                {{ upcoming_count }}
-            </div>
-            <div>Upcoming Trainings</div>
-        </div>
-    </div>
+    <h5 class="mb-3">Filters</h5>
 
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card stat-card p-3 text-center">
-            <div class="stat-number text-danger">
-                {{ attendance_percentage }}%
-            </div>
-            <div>Attendance %</div>
-        </div>
-    </div>
+    <div class="row">
 
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card stat-card p-3 text-center">
-            <div class="stat-number text-info">
-                {{ total_sessions }}
-            </div>
-            <div>Total Trainings</div>
-        </div>
-    </div>
+        <div class="col-md-4">
+            <label>Department</label>
 
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card stat-card p-3 text-center">
-            <div class="stat-number text-secondary">
-                {{ total_departments }}
-            </div>
-            <div>Departments Participated</div>
-        </div>
-    </div>
+            <select name="department"
+                    class="form-control"
+                    onchange="this.form.submit()">
 
-</div>
+                <option value="">All</option>
 
-    <div class="row mt-4">
-
-    <div class="col-md-6 mb-3">
-        <div class="action-card">
-
-            <h4>Create Training</h4>
-
-            <p>
-                Schedule and manage training sessions.
-            </p>
-
-            <a href="/app/training-session"
-               class="btn btn-primary">
-               Open Training Sessions
-            </a>
-
-        </div>
-    </div>
-
-    <div class="col-md-6 mb-3">
-        <div class="action-card">
-
-            <h4>Attendance Management</h4>
-
-            <p>
-                Track employee attendance records.
-            </p>
-
-            <a href="/app/training-attendance"
-               class="btn btn-success">
-               Manage Attendance
-            </a>
-
-        </div>
-    </div>
-
-</div>
-
-    <div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">Recent Training Sessions</h5>
-    </div>
-
-    <div class="card-body">
-
-        <table class="table table-bordered">
-
-            <thead>
-                <tr>
-                    <th>Training Name</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for s in recent_sessions %}
-
-                <tr>
-                    <td>{{ s.training_name }}</td>
-                    <td>{{ s.training_date }}</td>
-                    <td>{{ s.status }}</td>
-                </tr>
-
+                {% for dept in departments %}
+                <option value="{{ dept }}"
+                    {% if selected_department == dept %}
+                        selected
+                    {% endif %}
+                >
+                    {{ dept }}
+                </option>
                 {% endfor %}
 
-            </tbody>
-
-        </table>
-    </div>
-    </div>
-   
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="mb-0">Upcoming Trainings</h5>
+            </select>
         </div>
 
-        <div class="card-body">
+        <div class="col-md-3">
+            <label>From Date</label>
 
-        <table class="table table-bordered">
-
-            <thead>
-                <tr>
-                    <th>Training</th>
-                    <th>Date</th>
-                    <th>Trainer</th>
-                    <th>Department</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            {% for s in upcoming_sessions %}
-
-                <tr>
-                    <td>{{ s.training_name }}</td>
-                    <td>{{ s.training_date }}</td>
-                    <td>{{ s.trainer }}</td>
-                    <td>{{ s.department }}</td>
-                </tr>
-
-            {% endfor %}
-
-            </tbody>
-
-        </table>
-
+            <input
+                type="date"
+                name="from_date"
+                value="{{ from_date or '' }}"
+                class="form-control">
         </div>
-    </div>
 
-    <div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">Department-wise Training Summary</h5>
-    </div>
+        <div class="col-md-3">
+            <label>To Date</label>
 
-    <div class="card-body">
+            <input
+                type="date"
+                name="to_date"
+                value="{{ to_date or '' }}"
+                class="form-control">
+        </div>
 
-        <table class="table table-bordered">
-
-            <thead>
-                <tr>
-                    <th>Department</th>
-                    <th>Total Trainings</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for d in department_summary %}
-
-                <tr>
-                    <td>{{ d.department }}</td>
-                    <td>{{ d.training_count }}</td>
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100">
+                Apply
+            </button>
+        </div>
 
     </div>
-</div>
+
 </div>
 
+</form>
+
+<!-- KPI Cards -->
+
+<div class="row">
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="metric-icon blue">
+        📚
+      </div>
+
+      <div>
+        <h2>{{ total_trainings }}</h2>
+        <p>Total Trainings</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+            <div class="metric-icon green">👥</div>
+            <div>
+                <h2>{{ total_employees }}</h2>
+                <p>Total Employees</p>
+            </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+            <div class="metric-icon orange">⏰</div>
+            <div>
+                <h2>{{ total_hours }}</h2>
+                <p>Training Hours</p>
+            </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+     <div class="metric-card">
+            <div class="metric-icon purple">📈</div>
+            <div>
+                <h2>{{ avg_attendance }}</h2>
+                <p>Attendance %</p>
+            </div>
+    </div>
+   </div>
+</div>
+
+<!-- Department Participation -->
+
+<div class="custom-card">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+    <div>
+        <h4 class="mb-0">
+            Department Participation
+        </h4>
+
+        <small class="text-muted">
+            Training participation by department
+        </small>
+    </div>
+
+    <span class="badge bg-primary">
+        {{ department_stats|length }}
+    </span>
+
+</div>
+<div style="height:280px;">
+    <canvas id="deptChart"></canvas>
+</div>
+
+</div>
+
+<!-- Employee Hours -->
+
+<div class="custom-card">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Employee Training Hours</h4>
+
+    <span class="text-muted">
+        {{ employee_hours|length }} Employees
+    </span>
+</div>
+
+<table class="table table-hover">
+
+<thead>
+<tr>
+<th>Employee</th>
+<th>Department</th>
+<th>Total Hours</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for emp in employee_hours %}
+
+<tr>
+<td>{{ emp.employee_name }}</td>
+<td>{{ emp.department }}</td>
+<td>{{ emp.hours }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<a
+class="btn btn-success btn-lg"
+href="/api/method/training_portal.www.hr_dashboard.index.download_excel?department={{ selected_department or '' }}&from_date={{ from_date or '' }}&to_date={{ to_date or '' }}"
+>
+📥 Download Excel Report
+</a>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+
+var labels = JSON.parse('{{ chart_labels }}');
+var data = JSON.parse('{{ chart_values }}');
+
+new Chart(
+    document.getElementById("deptChart"),
+    {
+        plugins: [ChartDataLabels],
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Employees",
+                data: data,
+                backgroundColor: "#4f46e5",
+                borderRadius: 10,
+                barThickness: 24
+            }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: "#0f172a",
+              titleColor: "#fff",
+              bodyColor: "#fff",
+              padding: 12
+            },
+          },
+
+          scales: {
+            y: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: "#475569",
+                font: {
+                    size: 13,
+                    weight: '600'
+                }
+              }
+            },
+
+            x: {
+               beginAtZero: true,
+               grid: {
+                color: "#f1f5f9"
+               },
+               ticks: {
+                precision: 0,
+                color: "#64748b"
+               }
+            }
+          }
+        }
+    }
+);
+
+</script>
 
 {% endblock %}

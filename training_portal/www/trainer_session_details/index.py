@@ -3,8 +3,13 @@ import frappe
 
 def get_context(context):
 
-    if "Trainer" not in frappe.get_roles():
-        frappe.throw("Not Permitted")
+    roles = frappe.get_roles()
+
+    if (
+      "Trainer" not in roles and
+      "HR Administrator" not in roles
+    ):
+      frappe.throw("Not Permitted")
 
     session_name = frappe.form_dict.get("session")
 
