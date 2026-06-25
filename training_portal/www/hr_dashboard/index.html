@@ -12,12 +12,14 @@
 
 .metric-card{
     background:#fff;
+    border:1px solid #e5e7eb;
     border-radius:20px;
-    padding:25px;
+    padding:22px;
+    min-height:120px;
     display:flex;
     align-items:center;
     gap:20px;
-    border:1px solid #e5e7eb;
+    transition:.3s;
 }
 
 .metric-icon{
@@ -47,14 +49,10 @@
 }
 
 .metric-card{
-    background:#fff;
-    border-radius:20px;
-    padding:25px;
+    padding:22px;
+    min-height:120px;
     display:flex;
     align-items:center;
-    gap:20px;
-    border:1px solid #e5e7eb;
-    transition:.3s;
 }
 
 .metric-card:hover{
@@ -82,8 +80,16 @@
 }
 
 table{
-    border-radius:12px;
-    overflow:hidden;
+    border-collapse:separate;
+    border-spacing:0;
+}
+
+.table thead{
+    background:#f8fafc;
+}
+
+.table tbody tr:hover{
+    background:#f3f4f6;
 }
 
 thead{
@@ -114,9 +120,6 @@ body{
 
 <div class="container-fluid px-4 mt-4">
 
-<!-- <div class="dashboard-title">
-HR Training Dashboard
-</div> -->
 <div class="hero-section">
     <h2>HR Dashboard</h2>
     <p>
@@ -130,59 +133,68 @@ HR Training Dashboard
 
 <div class="custom-card mb-4">
 
-    <h5 class="mb-3">Filters</h5>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Filters</h5>
 
-    <div class="row">
+    <a
+    class="btn btn-primary"
+    href="/api/method/training_portal.www.hr_dashboard.index.download_excel?department={{ selected_department or '' }}&from_date={{ from_date or '' }}&to_date={{ to_date or '' }}">
+        📥 Download Excel
+    </a>
 
-        <div class="col-md-4">
-            <label>Department</label>
+</div>
 
-            <select name="department"
-                    class="form-control"
-                    onchange="this.form.submit()">
+<div class="row">
 
-                <option value="">All</option>
+<div class="col-md-4">
 
-                {% for dept in departments %}
-                <option value="{{ dept }}"
-                    {% if selected_department == dept %}
-                        selected
-                    {% endif %}
-                >
-                    {{ dept }}
-                </option>
-                {% endfor %}
+<label>Department</label>
 
-            </select>
-        </div>
+<select
+name="department"
+class="form-control"
+onchange="this.form.submit()">
 
-        <div class="col-md-3">
-            <label>From Date</label>
+<option value="">All</option>
 
-            <input
-                type="date"
-                name="from_date"
-                value="{{ from_date or '' }}"
-                class="form-control">
-        </div>
+{% for dept in departments %}
+<option value="{{ dept }}"
+{% if selected_department==dept %}selected{% endif %}>
+{{ dept }}
+</option>
+{% endfor %}
 
-        <div class="col-md-3">
-            <label>To Date</label>
+</select>
 
-            <input
-                type="date"
-                name="to_date"
-                value="{{ to_date or '' }}"
-                class="form-control">
-        </div>
+</div>
 
-        <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-primary w-100">
-                Apply
-            </button>
-        </div>
+<div class="col-md-3">
 
-    </div>
+<label>From Date</label>
+
+<input
+type="date"
+name="from_date"
+value="{{ from_date or '' }}"
+class="form-control"
+onchange="submitIfDatesSelected()">
+
+</div>
+
+<div class="col-md-3">
+
+<label>To Date</label>
+
+<input
+type="date"
+name="to_date"
+value="{{ to_date or '' }}"
+class="form-control"
+onchange="submitIfDatesSelected()">
+
+</div>
+
+</div>
 
 </div>
 
@@ -190,7 +202,7 @@ HR Training Dashboard
 
 <!-- KPI Cards -->
 
-<div class="row">
+<div class="row g-4 mb-4">
   <div class="col-md-3">
     <div class="metric-card">
       <div class="metric-icon blue">
@@ -198,7 +210,7 @@ HR Training Dashboard
       </div>
 
       <div>
-        <h2>{{ total_trainings }}</h2>
+        <h2 class="kpi-number">{{ total_trainings }}</h2>
         <p>Total Trainings</p>
       </div>
     </div>
@@ -208,7 +220,7 @@ HR Training Dashboard
     <div class="metric-card">
             <div class="metric-icon green">👥</div>
             <div>
-                <h2>{{ total_employees }}</h2>
+                <h2 class="kpi-number">{{ total_employees }}</h2>
                 <p>Total Employees</p>
             </div>
     </div>
@@ -218,7 +230,7 @@ HR Training Dashboard
     <div class="metric-card">
             <div class="metric-icon orange">⏰</div>
             <div>
-                <h2>{{ total_hours }}</h2>
+                <h2 class="kpi-number">{{ total_hours }}</h2>
                 <p>Training Hours</p>
             </div>
     </div>
@@ -228,60 +240,85 @@ HR Training Dashboard
      <div class="metric-card">
             <div class="metric-icon purple">📈</div>
             <div>
-                <h2>{{ avg_attendance }}</h2>
+                <h2 class="kpi-number">{{ avg_attendance }}</h2>
                 <p>Attendance %</p>
             </div>
     </div>
    </div>
 </div>
 
-<!-- Department Participation -->
+<div class="row g-4 mb-4">
+
+<!-- Chart -->
+
+<div class="col-lg-5">
 
 <div class="custom-card">
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 
-    <div>
-        <h4 class="mb-0">
-            Department Participation
-        </h4>
+<div>
+<h4 class="mb-0">
+Department Participation
+</h4>
 
-        <small class="text-muted">
-            Training participation by department
-        </small>
-    </div>
-
-    <span class="badge bg-primary">
-        {{ department_stats|length }}
-    </span>
-
-</div>
-<div style="height:280px;">
-    <canvas id="deptChart"></canvas>
-</div>
+<small class="text-muted">
+Training participants
+</small>
 
 </div>
 
-<!-- Employee Hours -->
+<span class="badge bg-primary">
+{{ department_stats|length }}
+</span>
+
+</div>
+
+<div style="height:250px">
+<canvas id="deptChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- Table -->
+
+<div class="col-lg-7">
 
 <div class="custom-card">
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Employee Training Hours</h4>
 
-    <span class="text-muted">
-        {{ employee_hours|length }} Employees
-    </span>
+<h4 class="mb-0">
+Employee Training Hours
+</h4>
+
+<span class="badge bg-success">
+
+{{ employee_hours|length }}
+
+Employees
+
+</span>
+
 </div>
 
-<table class="table table-hover">
+<table class="table table-hover align-middle">
 
 <thead>
+
 <tr>
+
 <th>Employee</th>
+
 <th>Department</th>
-<th>Total Hours</th>
+
+<th class="text-end">Hours</th>
+
 </tr>
+
 </thead>
 
 <tbody>
@@ -289,9 +326,15 @@ HR Training Dashboard
 {% for emp in employee_hours %}
 
 <tr>
+
 <td>{{ emp.employee_name }}</td>
+
 <td>{{ emp.department }}</td>
-<td>{{ emp.hours }}</td>
+
+<td class="text-end">
+<b>{{ emp.hours }}</b>
+</td>
+
 </tr>
 
 {% endfor %}
@@ -302,12 +345,9 @@ HR Training Dashboard
 
 </div>
 
-<a
-class="btn btn-success btn-lg"
-href="/api/method/training_portal.www.hr_dashboard.index.download_excel?department={{ selected_department or '' }}&from_date={{ from_date or '' }}&to_date={{ to_date or '' }}"
->
-📥 Download Excel Report
-</a>
+</div>
+
+</div>
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -329,7 +369,9 @@ new Chart(
                 data: data,
                 backgroundColor: "#4f46e5",
                 borderRadius: 10,
-                barThickness: 24
+                barThickness:16,
+                borderRadius:8,
+                maxBarThickness:18
             }]
         },
         options: {
@@ -338,15 +380,28 @@ new Chart(
           maintainAspectRatio: false,
 
           plugins: {
-            legend: {
-              display: false
+
+            legend:{
+            display:false
             },
-            tooltip: {
-              backgroundColor: "#0f172a",
-              titleColor: "#fff",
-              bodyColor: "#fff",
-              padding: 12
-            },
+
+            tooltip:{
+            backgroundColor:"#0f172a",
+            titleColor:"#fff",
+            bodyColor:"#fff",
+            padding:12
+           },
+
+           datalabels:{
+           anchor:"end",
+           align:"right",
+           color:"#111827",
+            font:{
+            size:13,
+            weight:"bold"
+            }
+           }
+
           },
 
           scales: {
@@ -377,6 +432,18 @@ new Chart(
         }
     }
 );
+
+//for selecting dates
+function submitIfDatesSelected() {
+
+    const fromDate = document.querySelector('[name="from_date"]').value;
+    const toDate = document.querySelector('[name="to_date"]').value;
+
+    if (fromDate && toDate) {
+        document.querySelector("form").submit();
+    }
+
+}
 
 </script>
 
