@@ -3,27 +3,15 @@
 {% block content_area %}
 <style>
     /* Shared CSS style definitions */
-    /* Override default container constraints for full-width layout */
-    .container, .page-container, .main-container {
-        max-width: 100% !important;
-        width: 100% !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
-
     .workspace-container {
         display: grid;
         grid-template-columns: 1fr;
         gap: 24px;
-        width: 100%;
-        align-items: start;
     }
 
     @media (min-width: 992px) {
         .workspace-container {
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 450px 1fr;
         }
     }
 
