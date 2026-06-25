@@ -97,7 +97,7 @@ def get_context(context):
 
     if selected_department:
       dept_conditions.append(
-        "department = %(department)s"
+        "e.department = %(department)s"
       )
       dept_values["department"] = selected_department
 
@@ -110,12 +110,18 @@ def get_context(context):
       )
 
     context.department_stats = frappe.db.sql(f"""
-      SELECT
-        department,
-        COUNT(name) as employees
-      FROM `tabEmployee`
-      {dept_where}
-      GROUP BY department
+    SELECT
+        e.department,
+        COUNT(te.name) as participants
+
+    FROM `tabTraining Enrollment` te
+
+    INNER JOIN `tabEmployee` e
+        ON te.employee = e.name
+
+    {dept_where}
+
+    GROUP BY e.department
     """, dept_values, as_dict=True)
 
     context.chart_labels = json.dumps(
@@ -123,7 +129,7 @@ def get_context(context):
     )
 
     context.chart_values = json.dumps(
-      [row["employees"] for row in context.department_stats]
+      [row["participants"] for row in context.department_stats]
     )
 
     # Employee Training Hours
