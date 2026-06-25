@@ -2,11 +2,12 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "autoname": "field:training_name",
+ "autoname": "TS-.#####.",
  "creation": "2026-06-06 15:32:45.664214",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "course",
   "training_name",
   "trainer",
   "training_mode",
@@ -18,16 +19,28 @@
   "location",
   "description",
   "department",
-  "max_participants"
+  "max_participants",
+  "attendance_percentage",
+  "cancelled_by",
+  "cancelled_on",
+  "cancellation_reason"
  ],
  "fields": [
   {
+   "fieldname": "course",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Select Training",
+   "options": "Training Course",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "course.course_name",
    "fieldname": "training_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Training Name",
-   "reqd": 1,
-   "unique": 1
+   "read_only": 1
   },
   {
    "fieldname": "trainer",
@@ -90,6 +103,31 @@
    "fieldname": "max_participants",
    "fieldtype": "Int",
    "label": "Max Participants"
+  },
+  {
+   "default": "0",
+   "fieldname": "attendance_percentage",
+   "fieldtype": "Float",
+   "label": "Attendance Percentage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancelled_by",
+   "fieldtype": "Data",
+   "label": "Cancelled By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancelled_on",
+   "fieldtype": "Datetime",
+   "label": "Cancelled On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancellation_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancellation Reason",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -99,7 +137,7 @@
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Training Session",
- "naming_rule": "By fieldname",
+ "naming_rule": "",
  "owner": "Administrator",
  "permissions": [
   {
@@ -111,6 +149,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Trainer",
    "share": 1,
    "write": 1
   }

@@ -4,3 +4,5 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+training_portal.patches.migrate_training_model
+training_portal.patches.seed_subcategories

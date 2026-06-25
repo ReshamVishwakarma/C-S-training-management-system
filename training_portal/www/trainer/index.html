@@ -1,146 +1,216 @@
-{% extends "templates/web.html" %}
+{% extends "training_portal/templates/trainer_base.html" %}
 
-{% block page_content %}
-
+{% block content_area %}
 <style>
+    .profile-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 40px;
+        margin-bottom: 30px;
+    }
 
-.profile-header{
-    background:#1f4f82;
-    color:white;
-    padding:40px;
-    border-radius:15px;
-    margin-bottom:25px;
-}
+    .profile-hero {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 30px;
+        margin-bottom: 30px;
+    }
 
-.card-box{
-    background:white;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-    margin-bottom:20px;
-}
+    .profile-avatar-large {
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, var(--accent), #60a5fa);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 36px;
+        font-weight: 800;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+    }
 
-.stat-card{
-    background:white;
-    padding:25px;
-    border-radius:15px;
-    text-align:center;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
+    .profile-meta {
+        flex-grow: 1;
+    }
 
-.label{
-    font-weight:600;
-    color:#666;
-}
+    .profile-name {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0 0 6px 0;
+        letter-spacing: -0.5px;
+    }
 
-.value{
-    font-size:18px;
-    margin-top:5px;
-}
+    .profile-subtitle {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
+    .profile-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .profile-stat-card {
+        background-color: #f8fafc;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .profile-stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--accent);
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .profile-stat-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .info-item {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 16px;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary);
+    }
 </style>
 
-<div class="container mt-4">
-
-    <div class="profile-header">
-
-        <h1>{{ trainer.trainer_name }}</h1>
-
-        <p>
-            {{ trainer.department or "Department Not Assigned" }}
-        </p>
-
+<!-- Page Header -->
+<div class="page-header-widget">
+    <div class="page-title-group">
+        <h1>My Profile</h1>
+        <p>View and manage your trainer account profile details</p>
     </div>
-
-    <div class="row mb-4">
-
-        <div class="col-md-6">
-            <div class="stat-card">
-                <h2>{{ total_sessions }}</h2>
-                <p>Total Sessions</p>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="stat-card">
-                <h2>{{ total_trainees }}</h2>
-                <p>Total Trainees</p>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="card-box">
-
-        <h3>Trainer Information</h3>
-        <hr>
-
-        <div class="row">
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Trainer Name</div>
-                <div class="value">
-                    {{ trainer.trainer_name or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Department</div>
-                <div class="value">
-                    {{ trainer.department or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Designation</div>
-                <div class="value">
-                    {{ trainer.designation or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Expertise</div>
-                <div class="value">
-                    {{ trainer.expertise or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Phone Number</div>
-                <div class="value">
-                    {{ trainer.phone_number or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Email</div>
-                <div class="value">
-                    {{ trainer.email or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Trainer Type</div>
-                <div class="value">
-                    {{ trainer.trainer_type or "-" }}
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="label">Active</div>
-                <div class="value">
-                    {% if trainer.active %}
-                        Yes
-                    {% else %}
-                        No
-                    {% endif %}
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
 </div>
 
+{% if trainer %}
+<div class="profile-card">
+    <!-- Profile Hero Info -->
+    <div class="profile-hero">
+        <div class="profile-avatar-large">
+            {{ trainer.trainer_name[0] | upper }}
+        </div>
+        <div class="profile-meta">
+            <h2 class="profile-name">{{ trainer.trainer_name }}</h2>
+            <p class="profile-subtitle">
+                <span><i class="bi bi-building me-1"></i>{{ trainer.department or "General L&D" }}</span>
+                <span>•</span>
+                <span><i class="bi bi-award me-1"></i>{{ trainer.designation or "Trainer" }}</span>
+            </p>
+        </div>
+        <div>
+            {% if trainer.active %}
+                <span class="badge bg-success-subtle text-success" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-check-circle-fill me-1"></i> Active Status
+                </span>
+            {% else %}
+                <span class="badge bg-danger-subtle text-danger" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-x-circle-fill me-1"></i> Inactive Status
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="profile-stats-grid">
+        <div class="profile-stat-card">
+            <span class="profile-stat-value">{{ total_sessions }}</span>
+            <span class="profile-stat-label">Total Sessions Led</span>
+        </div>
+        <div class="profile-stat-card">
+            <span class="profile-stat-value">{{ total_trainees }}</span>
+            <span class="profile-stat-label">Total Trainees Instructed</span>
+        </div>
+    </div>
+
+    <!-- Detailed Profile Details -->
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin: 0 0 20px 0;">Trainer Information</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Full Name</div>
+            <div class="info-value">{{ trainer.trainer_name }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Department</div>
+            <div class="info-value">{{ trainer.department or "-" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Designation</div>
+            <div class="info-value">{{ trainer.designation or "-" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Expertise & Specialties</div>
+            <div class="info-value" style="font-weight: 500; line-height: 1.5;">{{ trainer.expertise or "No expertise details registered." }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Email Address</div>
+            <div class="info-value">{{ trainer.email or "-" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Phone Number</div>
+            <div class="info-value">{{ trainer.phone_number or "-" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Trainer Type</div>
+            <div class="info-value">
+                {% if trainer.trainer_type == 'Internal' %}
+                    <span class="badge bg-light text-primary" style="padding: 6px 12px; font-weight: 600; font-size: 13px;">Internal Employee</span>
+                {% else %}
+                    <span class="badge bg-light text-warning" style="padding: 6px 12px; font-weight: 600; font-size: 13px;">External Consultant</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">System Login User</div>
+            <div class="info-value" style="font-weight: 400; font-size: 14px; color: var(--text-muted);">{{ user }}</div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="lms-card text-center py-5">
+    <i class="bi bi-person-x-fill" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
+    <p class="mt-3 text-muted" style="font-size: 15px;">Your account is not linked to any Trainer profile record.</p>
+</div>
+{% endif %}
 {% endblock %}

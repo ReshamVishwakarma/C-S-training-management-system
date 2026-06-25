@@ -1,12 +1,12 @@
 import frappe
+from training_portal.training_portal.access_control import get_trainer_department, check_portal_permission
 
 
 def get_context(context):
-
-    if "Trainer" not in frappe.get_roles():
-        frappe.throw("Not Permitted")
+    check_portal_permission()
 
     user = frappe.session.user
+    context.user = user
 
     trainer = frappe.db.get_value(
         "Trainer",
@@ -14,22 +14,26 @@ def get_context(context):
         ["name", "trainer_name", "department"],
         as_dict=True
     )
-
     context.trainer = trainer
 
-    if not trainer:
-        context.enrollments = []
-        context.total_enrollments = 0
-        context.assigned = 0
-        context.completed = 0
-        context.in_progress = 0
-        return context
+    trainer_dept = get_trainer_department()
+    context.trainer_dept = trainer_dept
+
+    session_filters = {}
+    if trainer and trainer_dept:
+        # Restricted Trainer: filter by their department courses
+        courses = [c.name for c in frappe.get_all("Training Course", filters={"department": trainer_dept})]
+        session_filters["course"] = ["in", courses]
+    elif trainer:
+        # Admin Trainer: default to their own sessions
+        session_filters["trainer"] = trainer.name
+    else:
+        # Admin with no trainer profile: show all sessions
+        pass
 
     sessions = frappe.get_all(
         "Training Session",
-        filters={
-            "trainer": trainer.name
-        },
+        filters=session_filters,
         pluck="name"
     )
 
@@ -56,7 +60,6 @@ def get_context(context):
     )
 
     context.enrollments = enrollments
-
     context.total_enrollments = len(enrollments)
 
     context.assigned = len([

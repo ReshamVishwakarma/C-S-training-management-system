@@ -16,7 +16,8 @@
   "email",
   "active",
   "trainer_type",
-  "user"
+  "user",
+  "attendance_percentage"
  ],
  "fields": [
   {
@@ -34,9 +35,10 @@
   },
   {
    "fieldname": "department",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Department",
+   "options": "Department",
    "reqd": 1
   },
   {
@@ -81,6 +83,13 @@
    "fieldtype": "Link",
    "label": "User",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "attendance_percentage",
+   "fieldtype": "Float",
+   "label": "Attendance Percentage",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,

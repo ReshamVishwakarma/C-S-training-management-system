@@ -17,8 +17,12 @@
   "mandatory",
   "passing_percentage",
   "active",
+  "status",
   "course_type",
-  "validity_period_months"
+  "validity_period_months",
+  "created_by",
+  "created_on",
+  "last_modified"
  ],
  "fields": [
   {
@@ -30,7 +34,7 @@
    "fieldname": "course_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Course Name",
+   "label": "Training Name",
    "reqd": 1,
    "unique": 1
   },
@@ -49,8 +53,9 @@
   },
   {
    "fieldname": "category",
-   "fieldtype": "Data",
-   "label": "Category"
+   "fieldtype": "Link",
+   "label": "Training Subcategory",
+   "options": "Training Subcategory"
   },
   {
    "fieldname": "course_details_section",
@@ -87,6 +92,14 @@
    "label": "Active"
   },
   {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nInactive\nArchived"
+  },
+  {
    "fieldname": "course_type",
    "fieldtype": "Select",
    "label": "Course Type",
@@ -96,6 +109,24 @@
    "fieldname": "validity_period_months",
    "fieldtype": "Int",
    "label": "Validity Period (Months)"
+  },
+  {
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_on",
+   "fieldtype": "Datetime",
+   "label": "Created On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_modified",
+   "fieldtype": "Datetime",
+   "label": "Last Modified",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,

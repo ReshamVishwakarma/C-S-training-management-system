@@ -1,0 +1,937 @@
+{% extends "training_portal/templates/trainer_base.html" %}
+
+{% block content_area %}
+<style>
+    /* Shared CSS style definitions */
+    .workspace-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    @media (min-width: 992px) {
+        .workspace-container {
+            grid-template-columns: 450px 1fr;
+        }
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .form-control, .form-select {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 14px;
+        background-color: var(--bg-card);
+        color: var(--text-main);
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Table scrollable style */
+    .table-container {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        background-color: var(--bg-card);
+        margin-top: 16px;
+    }
+
+    .table-responsive {
+        max-height: 650px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    .lms-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 1000px;
+    }
+
+    .lms-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #f1f5f9;
+        font-weight: 700;
+        color: #334155;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 14px;
+        border-bottom: 2px solid #cbd5e1;
+        border-right: 1px solid #e2e8f0;
+        box-shadow: inset 0 -1px 0 #cbd5e1;
+        white-space: nowrap;
+    }
+
+    .lms-table td {
+        padding: 10px 14px;
+        font-size: 13px;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #f1f5f9;
+        color: var(--text-main);
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .lms-table tbody tr:hover {
+        background-color: #f0fdf4 !important;
+    }
+
+    /* Badge styles */
+    .status-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    .status-scheduled { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .status-ongoing { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .status-completed { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .status-cancelled { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .status-draft { background-color: rgba(100, 116, 139, 0.1); color: #64748b; }
+
+    .status-active { background-color: #dcfce7; color: #166534; }
+    .status-inactive { background-color: #f1f5f9; color: #475569; }
+    .status-on-leave { background-color: #fef9c3; color: #854d0e; }
+    .status-resigned { background-color: #fee2e2; color: #991b1b; }
+    .status-transferred { background-color: #e0f2fe; color: #075985; }
+
+    /* Button utilities */
+    .btn-action-primary {
+        background-color: var(--accent);
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-action-primary:hover:not(:disabled) {
+        background-color: var(--accent-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-action-primary:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    /* Modal styling */
+    .cancellation-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(15, 23, 42, 0.6);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+    }
+
+    .cancellation-modal-content {
+        background-color: var(--bg-card);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 500px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Filter section */
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+</style>
+
+{% if session_id %}
+    <!-- State B: Single Session Editing Workspace -->
+    <a href="/edit_training" class="btn btn-sm btn-outline-secondary mb-4" style="border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="bi bi-arrow-left"></i> Back to Session List
+    </a>
+
+    <!-- Page Header -->
+    <div class="page-header-widget mb-4">
+        <div class="page-title-group">
+            <h1>Session Workspace: {{ session_data.name }}</h1>
+            <p>Modify session details or manage participants</p>
+        </div>
+    </div>
+
+    {% if session_data.status == 'Cancelled' %}
+        <!-- Cancellation Banner -->
+        <div class="alert alert-danger mb-4" style="border-radius: 12px; border: 1px solid #fca5a5;">
+            <h4 class="alert-heading" style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-exclamation-octagon-fill"></i> This Session is Cancelled
+            </h4>
+            <p class="mb-1" style="font-size: 14px;">
+                <strong>Cancelled By:</strong> {{ session_data.cancelled_by or '-' }} | 
+                <strong>Cancelled On:</strong> {{ session_data.cancelled_on or '-' }}
+            </p>
+            <p class="mb-0" style="font-size: 14px;">
+                <strong>Reason:</strong> {{ session_data.cancellation_reason or 'No reason provided' }}
+            </p>
+        </div>
+    {% endif %}
+
+    <div class="workspace-container">
+        <!-- Column 1: Settings Form -->
+        <div class="lms-card">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--primary);">Session Settings</h3>
+            <form id="edit-session-form" onsubmit="submitSessionDetails(event)">
+                <!-- Row 1: Training Name & Subcategory -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label>Training Name</label>
+                            <input type="text" class="form-control" value="{{ session_data.training_name }}" disabled style="background-color: #e2e8f0; cursor: not-allowed; font-weight: 600;">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label>Training Subcategory</label>
+                            <input type="text" class="form-control" value="{{ session_data.training_subcategory or 'General' }}" disabled style="background-color: #e2e8f0; cursor: not-allowed; font-weight: 600;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Scheduled Date, Start Time & End Time -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="training_date">Scheduled Date *</label>
+                            <input type="date" id="training_date" class="form-control" value="{{ session_data.training_date }}" required {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-2">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="start_time">Start Time *</label>
+                            <input type="time" id="start_time" class="form-control" value="{{ session_data.start_time[:5] if session_data.start_time else '' }}" required onchange="onTimeChange()" {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="end_time">End Time *</label>
+                            <input type="time" id="end_time" class="form-control" required onchange="onTimeChange()" {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Duration & Training Mode -->
+                <div class="row mt-2">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="duration_hours">Duration (Hours)</label>
+                            <input type="number" id="duration_hours" class="form-control" value="{{ session_data.duration_hours or 0.0 }}" step="0.01" readonly style="background-color: #e2e8f0; cursor: not-allowed; font-weight: 600;">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="training_mode">Training Mode *</label>
+                            <select id="training_mode" class="form-select" required onchange="toggleModeFields()" {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                                <option value="Online" {% if session_data.training_mode == 'Online' %}selected{% endif %}>Online</option>
+                                <option value="Offline" {% if session_data.training_mode == 'Offline' %}selected{% endif %}>Offline</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: Meeting Link / Venue & Max Participants -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="form-group {% if session_data.training_mode != 'Online' %}d-none{% endif %}" id="meeting-link-wrapper">
+                            <label for="meeting_link">Online Meeting Link</label>
+                            <input type="url" id="meeting_link" class="form-control" value="{{ session_data.meeting_link or '' }}" placeholder="https://teams.microsoft.com/..." {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                        </div>
+                        <div class="form-group {% if session_data.training_mode == 'Online' %}d-none{% endif %}" id="location-wrapper">
+                            <label for="location">Offline Location / Venue</label>
+                            <input type="text" id="location" class="form-control" value="{{ session_data.location or '' }}" placeholder="Conference Room B..." {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="max_participants">Max Participants Limit</label>
+                            <input type="number" id="max_participants" class="form-control" value="{{ session_data.max_participants or 0 }}" min="0" {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Session Status -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="session_status">Session Status *</label>
+                            <select id="session_status" class="form-select" required {% if session_data.status == 'Cancelled' %}disabled{% endif %}>
+                                <option value="Draft" {% if session_data.status == 'Draft' %}selected{% endif %}>Draft</option>
+                                <option value="Scheduled" {% if session_data.status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                                <option value="Ongoing" {% if session_data.status == 'Ongoing' %}selected{% endif %}>Ongoing</option>
+                                <option value="Completed" {% if session_data.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                <option value="Cancelled" {% if session_data.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {% if session_data.status != 'Cancelled' %}
+                    <div class="d-flex flex-column gap-3 mt-4">
+                        <button type="submit" class="btn-action-primary justify-content-center w-100">
+                            <i class="bi bi-save-fill"></i> Save Session Details
+                        </button>
+                        <button type="button" class="btn btn-outline-danger justify-content-center w-100" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; transition: all 0.2s;" onclick="showCancellationModal()">
+                            <i class="bi bi-x-circle-fill"></i> Cancel Training Session
+                        </button>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Column 2: Participants Management -->
+        <div class="d-flex flex-column gap-4" style="min-width: 0;">
+            <!-- Summary card -->
+            <div class="lms-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--primary);">Current Participants</h3>
+                        <p class="text-muted mb-0" style="font-size: 13px;" id="enrollment-count-txt">{{ participants | length }} Enrolled Employees</p>
+                    </div>
+                    {% if session_data.status != 'Cancelled' %}
+                        <button class="btn btn-sm btn-outline-primary" style="font-weight: 600; border-radius: 8px;" id="add-participants-btn" onclick="toggleSelectorPanel(true)">
+                            <i class="bi bi-person-plus-fill me-1"></i> Add More Participants
+                        </button>
+                    {% endif %}
+                </div>
+
+                <!-- Participants List Grid -->
+                <div class="table-container" style="margin-top: 0;">
+                    <div class="table-responsive">
+                        <table class="lms-table" id="participants-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Employee Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Designation</th>
+                                    <th>Plant</th>
+                                    <th>Location</th>
+                                    <th>Reporting Manager</th>
+                                    <th>Status</th>
+                                    {% if session_data.status != 'Cancelled' %}
+                                        <th style="width: 100px; text-align: center;">Action</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody id="participants-tbody">
+                                {% if participants %}
+                                    {% for p in participants %}
+                                        <tr id="row-enrollment-{{ p.enrollment_id }}">
+                                            <td style="font-weight: 600;" class="emp-id-cell">{{ p.name }}</td>
+                                            <td style="font-weight: 600;">{{ p.employee_name }}</td>
+                                            <td>{{ p.email or '-' }}</td>
+                                            <td>{{ p.department or '-' }}</td>
+                                            <td>{{ p.designation or '-' }}</td>
+                                            <td>{{ p.plant or '-' }}</td>
+                                            <td>{{ p.location or '-' }}</td>
+                                            <td>{{ p.reporting_manager_name or '-' }}</td>
+                                            <td>
+                                                {% set st_class = p.status | lower | replace(' ', '-') %}
+                                                <span class="status-badge status-{{ st_class }}">{{ p.status }}</span>
+                                            </td>
+                                            {% if session_data.status != 'Cancelled' %}
+                                                <td style="text-align: center;">
+                                                    <button class="btn btn-sm btn-link text-danger p-0" onclick="removeParticipant('{{ p.enrollment_id }}', '{{ p.employee_name }}')">
+                                                        <i class="bi bi-trash-fill" style="font-size: 15px;"></i>
+                                                    </button>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr id="empty-participants-row">
+                                        <td colspan="10" class="text-center py-4 text-muted">No participants assigned to this session.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expandable Selector panel -->
+            <div class="lms-card d-none" id="selector-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: var(--primary);">Add Participants to Session</h3>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleSelectorPanel(false)">Cancel</button>
+                </div>
+
+                <!-- Selector Filters -->
+                <div class="filter-grid">
+                    <div class="form-group mb-2">
+                        <label for="dept_filter">Department</label>
+                        <select id="dept_filter" class="form-select py-1 px-2" style="font-size: 13px;" onchange="onSelectorFilterChange()">
+                            <option value="">All Departments</option>
+                            {% for d in departments %}
+                                <option value="{{ d.name }}">{{ d.department_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label for="desig_filter">Designation</label>
+                        <select id="desig_filter" class="form-select py-1 px-2" style="font-size: 13px;" onchange="onSelectorFilterChange()">
+                            <option value="">All Designations</option>
+                            {% for des in designations %}
+                                <option value="{{ des }}">{{ des }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label for="plant_filter">Plant</label>
+                        <select id="plant_filter" class="form-select py-1 px-2" style="font-size: 13px;" onchange="onSelectorFilterChange()">
+                            <option value="">All Plants</option>
+                            {% for p in plants %}
+                                <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label for="location_filter">Location</label>
+                        <select id="location_filter" class="form-select py-1 px-2" style="font-size: 13px;" onchange="onSelectorFilterChange()">
+                            <option value="">All Locations</option>
+                            {% for l in locations %}
+                                <option value="{{ l }}">{{ l }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label for="manager_filter">Manager</label>
+                        <select id="manager_filter" class="form-select py-1 px-2" style="font-size: 13px;" onchange="onSelectorFilterChange()">
+                            <option value="">All Managers</option>
+                            {% for m in managers %}
+                                <option value="{{ m.name }}">{{ m.employee_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label for="status_filter">Status</label>
+                        <select id="status_filter" class="form-select py-1 px-2" style="font-size: 13px;" onchange="onSelectorFilterChange()">
+                            <option value="">All Statuses</option>
+                            {% for s in statuses %}
+                                <option value="{{ s }}" {% if s == 'Active' %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="search-input-wrapper mb-0" style="position: relative; max-width: 320px;">
+                        <input type="text" id="selector-search" class="form-control py-1 px-2" style="font-size: 13px;" placeholder="Search employee database..." oninput="debounceSearch()">
+                    </div>
+                </div>
+
+                <!-- Selector Table Grid -->
+                <div class="table-container" style="margin-top: 0;">
+                    <div class="table-responsive" style="max-height: 450px;">
+                        <table class="lms-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 44px; text-align: center;">
+                                        <input type="checkbox" id="select-all-employees" onchange="toggleSelectAll(this)">
+                                    </th>
+                                    <th>Employee ID</th>
+                                    <th>Employee Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Designation</th>
+                                    <th>Plant</th>
+                                    <th>Location</th>
+                                    <th>Reporting Manager</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="selector-tbody">
+                                <tr>
+                                    <td colspan="10" class="text-center py-4 text-muted">Use filters to load available employees.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 flex-wrap gap-3" style="border-top: 1px solid var(--border-color);">
+                    <!-- Left side: Badge -->
+                    <div>
+                        <span class="badge bg-primary text-white" id="selected-counter" style="font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 8px;">0 Selected</span>
+                    </div>
+                    <!-- Right side: Buttons -->
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-outline-secondary" style="border-radius: 8px; padding: 10px 20px; font-weight: 600;" onclick="toggleSelectorPanel(false)">Cancel</button>
+                        <button class="btn-action-primary" id="confirm-enrollment-btn" disabled onclick="submitEnrollments()">
+                            Confirm Enrollment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancellation Confirmation Dialog Modal -->
+    <div class="cancellation-modal" id="cancellation-dialog">
+        <div class="cancellation-modal-content">
+            <div class="p-4">
+                <h3 style="font-size: 16px; font-weight: 700; margin-top: 0; color: #dc2626;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Training Session
+                </h3>
+                <p class="text-muted" style="font-size: 14px;">Are you sure you want to cancel this training session? This action will set the session status to "Cancelled" and notify enrolled employees. This cannot be undone.</p>
+                
+                <div class="form-group mb-0">
+                    <label for="cancellation_reason" style="font-weight: 600;">Cancellation Reason (Optional)</label>
+                    <textarea id="cancellation_reason" class="form-control" rows="3" placeholder="e.g. Trainer unavailable, rescheduling scheduled date..."></textarea>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 p-3 bg-light" style="border-top: 1px solid var(--border-color); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                <button class="btn btn-sm btn-outline-secondary" style="border-radius: 6px; font-weight: 600;" onclick="closeCancellationModal()">Keep Session</button>
+                <button class="btn btn-sm btn-danger" style="border-radius: 6px; font-weight: 600;" onclick="confirmCancellation()">Yes, Cancel Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const currentSession = "{{ session_id }}";
+        let selectorData = [];
+        let searchTimeout;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (currentSession) {
+                calculateEndTimeFromDuration();
+            }
+        });
+
+        function calculateEndTimeFromDuration() {
+            const startTime = document.getElementById("start_time").value;
+            const durationHours = parseFloat(document.getElementById("duration_hours").value || 0);
+            if (!startTime || !durationHours) return;
+
+            const startParts = startTime.split(":");
+            let startMins = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+            
+            let endMins = Math.round(startMins + durationHours * 60);
+            endMins = endMins % (24 * 60);
+            
+            const endHours = Math.floor(endMins / 60);
+            const endMinsPart = endMins % 60;
+            
+            const pad = (num) => String(num).padStart(2, '0');
+            document.getElementById("end_time").value = `${pad(endHours)}:${pad(endMinsPart)}`;
+        }
+
+        function onTimeChange() {
+            const startTime = document.getElementById("start_time").value;
+            const endTime = document.getElementById("end_time").value;
+            if (!startTime || !endTime) return;
+            
+            const startParts = startTime.split(":");
+            const endParts = endTime.split(":");
+            
+            let startMins = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+            let endMins = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+            
+            if (endMins < startMins) {
+                endMins += 24 * 60;
+            }
+            
+            const diffMins = endMins - startMins;
+            const hours = (diffMins / 60).toFixed(2);
+            document.getElementById("duration_hours").value = hours;
+        }
+
+        function toggleModeFields() {
+            const mode = document.getElementById("training_mode").value;
+            const linkWrap = document.getElementById("meeting-link-wrapper");
+            const locWrap = document.getElementById("location-wrapper");
+            
+            if (mode === "Online") {
+                linkWrap.classList.remove("d-none");
+                locWrap.classList.add("d-none");
+            } else {
+                linkWrap.classList.add("d-none");
+                locWrap.classList.remove("d-none");
+            }
+        }
+
+        function submitSessionDetails(e) {
+            e.preventDefault();
+            const date = document.getElementById("training_date").value;
+            const start = document.getElementById("start_time").value;
+            const mode = document.getElementById("training_mode").value;
+            const link = document.getElementById("meeting-link-wrapper").classList.contains("d-none") ? "" : document.getElementById("meeting_link").value;
+            const loc = document.getElementById("location-wrapper").classList.contains("d-none") ? "" : document.getElementById("location").value;
+            const max = document.getElementById("max_participants").value;
+            const status = document.getElementById("session_status").value;
+            const duration = document.getElementById("duration_hours").value;
+
+            if (mode === "Offline" && !loc) {
+                frappe.show_alert({message: "Offline location is required", indicator: "orange"});
+                return;
+            }
+            if (mode === "Online" && !link) {
+                frappe.show_alert({message: "Online meeting link is required", indicator: "orange"});
+                return;
+            }
+
+            frappe.call({
+                method: "training_portal.www.edit_training.index.update_session_details",
+                args: {
+                    session_name: currentSession,
+                    training_date: date,
+                    start_time: start,
+                    training_mode: mode,
+                    status: status,
+                    location: loc,
+                    meeting_link: link,
+                    max_participants: max,
+                    duration_hours: duration
+                },
+                callback: function(r) {
+                    if (r.message && r.message.status === "success") {
+                        frappe.show_alert({message: r.message.message, indicator: "green"});
+                        setTimeout(() => window.location.reload(), 800);
+                    } else {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            indicator: 'red',
+                            message: r.message ? r.message.message : __('Failed to update session details.')
+                        });
+                    }
+                }
+            });
+        }
+
+        // Cancellation workflow
+        function showCancellationModal() {
+            document.getElementById("cancellation-dialog").style.display = "flex";
+        }
+
+        function closeCancellationModal() {
+            document.getElementById("cancellation-dialog").style.display = "none";
+        }
+
+        function confirmCancellation() {
+            const reason = document.getElementById("cancellation_reason").value.trim();
+            frappe.call({
+                method: "training_portal.www.edit_training.index.cancel_training_session",
+                args: {
+                    session_name: currentSession,
+                    reason: reason
+                },
+                callback: function(r) {
+                    closeCancellationModal();
+                    if (r.message && r.message.status === "success") {
+                        frappe.show_alert({message: r.message.message, indicator: "green"});
+                        setTimeout(() => window.location.reload(), 800);
+                    } else {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            indicator: 'red',
+                            message: r.message ? r.message.message : __('Failed to cancel session.')
+                        });
+                    }
+                }
+            });
+        }
+
+        // Participants management actions
+        function removeParticipant(enrollmentId, empName) {
+            frappe.confirm(`Are you sure you want to remove ${empName} from this session?`, function() {
+                frappe.call({
+                    method: "training_portal.www.edit_training.index.remove_participant",
+                    args: { enrollment_id: enrollmentId },
+                    callback: function(r) {
+                        if (r.message && r.message.status === "success") {
+                            frappe.show_alert({message: r.message.message, indicator: "green"});
+                            const row = document.getElementById(`row-enrollment-${enrollmentId}`);
+                            if (row) row.remove();
+                            
+                            // Update count txt
+                            const tbl = document.getElementById("participants-tbody");
+                            const currentCount = tbl.children.length;
+                            document.getElementById("enrollment-count-txt").textContent = `${currentCount} Enrolled Employees`;
+                            if (currentCount === 0) {
+                                tbl.innerHTML = `<tr id="empty-participants-row"><td colspan="10" class="text-center py-4 text-muted">No participants assigned to this session.</td></tr>`;
+                            }
+                        } else {
+                            frappe.show_alert({message: "Failed to remove participant", indicator: "red"});
+                        }
+                    }
+                });
+            });
+        }
+
+        // Participant Selector Grid implementation
+        function toggleSelectorPanel(show) {
+            const panel = document.getElementById("selector-panel");
+            if (show) {
+                panel.classList.remove("d-none");
+                fetchSelectorEmployees();
+            } else {
+                panel.classList.add("d-none");
+            }
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(fetchSelectorEmployees, 300);
+        }
+
+        function onSelectorFilterChange() {
+            fetchSelectorEmployees();
+        }
+
+        function fetchSelectorEmployees() {
+            const dept = document.getElementById("dept_filter").value;
+            const desig = document.getElementById("desig_filter").value;
+            const plant = document.getElementById("plant_filter").value;
+            const loc = document.getElementById("location_filter").value;
+            const mgr = document.getElementById("manager_filter").value;
+            const status = document.getElementById("status_filter").value;
+            const search = document.getElementById("selector-search").value.trim();
+
+            const tbody = document.getElementById("selector-tbody");
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-3"><span class="spinner-border spinner-border-sm text-primary me-2"></span>Loading database...</td></tr>`;
+
+            frappe.call({
+                method: "training_portal.www.edit_training.index.get_employees_for_selector",
+                args: {
+                    session_name: currentSession,
+                    department: dept,
+                    designation: desig,
+                    plant: plant,
+                    location: loc,
+                    reporting_manager: mgr,
+                    status: status,
+                    search_term: search
+                },
+                callback: function(r) {
+                    tbody.innerHTML = "";
+                    if (r.message && r.message.length) {
+                        selectorData = r.message;
+                        r.message.forEach(emp => {
+                            const tr = document.createElement("tr");
+                            const statusLower = emp.status.toLowerCase().replace(' ', '-');
+                            tr.innerHTML = `
+                                <td style="text-align: center;">
+                                    <input type="checkbox" class="selector-checkbox checkbox-custom" value="${emp.name}" onchange="onCheckboxChange()">
+                                </td>
+                                <td style="font-weight:600;" class="emp-id-cell">${emp.name}</td>
+                                <td style="font-weight:600;">${emp.employee_name}</td>
+                                <td>${emp.email || '-'}</td>
+                                <td>${emp.department || '-'}</td>
+                                <td>${emp.designation || '-'}</td>
+                                <td>${emp.plant || '-'}</td>
+                                <td>${emp.location || '-'}</td>
+                                <td>${emp.reporting_manager_name || '-'}</td>
+                                <td><span class="status-badge status-${statusLower}">${emp.status}</span></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        selectorData = [];
+                        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-3 text-muted">No matching eligible employees found.</td></tr>`;
+                    }
+                    document.getElementById("select-all-employees").checked = false;
+                    updateCounter();
+                }
+            });
+        }
+
+        function toggleSelectAll(master) {
+            const boxes = document.querySelectorAll(".selector-checkbox");
+            boxes.forEach(cb => cb.checked = master.checked);
+            updateCounter();
+        }
+
+        function onCheckboxChange() {
+            const boxes = document.querySelectorAll(".selector-checkbox");
+            const checked = document.querySelectorAll(".selector-checkbox:checked");
+            document.getElementById("select-all-employees").checked = boxes.length > 0 && boxes.length === checked.length;
+            updateCounter();
+        }
+
+        function updateCounter() {
+            const checked = document.querySelectorAll(".selector-checkbox:checked");
+            document.getElementById("selected-counter").textContent = `${checked.length} Selected`;
+            document.getElementById("confirm-enrollment-btn").disabled = checked.length === 0;
+        }
+
+        function submitEnrollments() {
+            const checked = document.querySelectorAll(".selector-checkbox:checked");
+            const employeesList = Array.from(checked).map(cb => cb.value);
+
+            if (employeesList.length === 0) return;
+
+            document.getElementById("confirm-enrollment-btn").disabled = true;
+
+            frappe.call({
+                method: "training_portal.www.edit_training.index.add_participants",
+                args: {
+                    session_name: currentSession,
+                    employees: JSON.stringify(employeesList)
+                },
+                callback: function(r) {
+                    if (r.message && r.message.status === "success") {
+                        frappe.show_alert({message: r.message.message, indicator: "green"});
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            indicator: 'red',
+                            message: r.message ? r.message.message : __('Failed to enroll participants.')
+                        });
+                        document.getElementById("confirm-enrollment-btn").disabled = false;
+                    }
+                }
+            });
+        }
+    </script>
+
+{% else %}
+    <!-- State A: List View -->
+    <div class="page-header-widget">
+        <div class="page-title-group">
+            <h1>Manage Training Sessions</h1>
+            <p>Reschedule, update delivery mode, or cancel training sessions</p>
+        </div>
+    </div>
+
+    <div class="lms-card">
+        <!-- Search -->
+        <div class="filter-section" style="display: flex; gap: 16px; margin-bottom: 24px;">
+            <div class="search-input-wrapper" style="position: relative; flex-grow: 1;">
+                <i class="bi bi-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <input type="text" id="session-search" class="form-control" style="padding-left: 48px; width: 100%; border-radius: 10px;" placeholder="Search sessions by ID, name, date, or status...">
+            </div>
+        </div>
+
+        {% if sessions %}
+            <div class="table-container" style="margin-top: 0;">
+                <div class="table-responsive">
+                    <table class="lms-table" id="sessions-edit-table" style="min-width: 900px;">
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>Session Name</th>
+                                <th>Scheduled Date</th>
+                                <th>Delivery Mode</th>
+                                <th>Session Status</th>
+                                <th style="width: 150px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                                <tr class="session-row-item">
+                                    <td style="font-weight: 700; color: var(--primary);">
+                                        {{ session.name }}
+                                    </td>
+                                    <td style="font-weight: 600;">
+                                        {{ session.training_name }}
+                                    </td>
+                                    <td style="color: var(--text-muted);">
+                                        <i class="bi bi-calendar3 me-2"></i>{{ session.training_date }}
+                                    </td>
+                                    <td>
+                                        {% if session.training_mode == 'Online' %}
+                                            <span class="badge bg-light text-primary" style="font-weight: 600; padding: 6px 12px; border-radius: 6px;">
+                                                <i class="bi bi-laptop me-1"></i> Online
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-light text-success" style="font-weight: 600; padding: 6px 12px; border-radius: 6px;">
+                                                <i class="bi bi-building me-1"></i> Offline
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set status_lower = session.status | lower %}
+                                        <span class="status-badge status-{{ status_lower }}">
+                                            <i class="bi bi-circle-fill" style="font-size: 6px; margin-right: 4px;"></i>
+                                            {{ session.status }}
+                                        </span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <a href="/edit_training?session={{ session.name }}" class="btn btn-sm btn-primary" style="border-radius: 8px; font-weight: 600; padding: 6px 12px; font-size: 13px;">
+                                            <i class="bi bi-pencil-square me-1"></i> Edit Session
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
+                <p class="mt-3 text-muted" style="font-size: 14px;">No training sessions scheduled.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchInput = document.getElementById("session-search");
+            const rows = document.querySelectorAll(".session-row-item");
+
+            if (searchInput) {
+                searchInput.addEventListener("input", function(e) {
+                    const term = e.target.value.toLowerCase().trim();
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(term) ? "" : "none";
+                    });
+                });
+            }
+        });
+    </script>
+{% endif %}
+{% endblock %}

@@ -15,7 +15,12 @@
   "designation",
   "status",
   "date_of_joining",
-  "user"
+  "user",
+  "attendance_percentage",
+  "plant",
+  "location",
+  "reporting_manager",
+  "employment_type"
  ],
  "fields": [
   {
@@ -62,9 +67,8 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
-
    "label": "Status",
-   "options": "Active\nInactive",
+   "options": "Active\nInactive\nOn Leave\nResigned\nTransferred",
    "reqd": 1
   },
   {
@@ -77,14 +81,41 @@
    "fieldtype": "Link",
    "label": "User",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "attendance_percentage",
+   "fieldtype": "Float",
+   "label": "Attendance Percentage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Data",
+   "label": "Plant"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "fieldname": "reporting_manager",
+   "fieldtype": "Link",
+   "label": "Reporting Manager",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "employment_type",
+   "fieldtype": "Select",
+   "label": "Employment Type",
+   "options": "Full-time\nPart-time\nContract\nIntern\nProbation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
-
  "modified": "2026-06-12 14:29:14.081306",
-
  "modified_by": "Administrator",
  "module": "Training Portal",
  "name": "Employee",
