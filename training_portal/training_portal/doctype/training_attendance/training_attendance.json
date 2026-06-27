@@ -13,6 +13,10 @@
   "total_participants",
   "present_count",
   "absent_count",
+  "marked_by",
+  "uploaded_filename",
+  "upload_timestamp",
+  "unknown_employee_logs",
   "attendance_details",
   "amended_from"
  ],
@@ -64,6 +68,31 @@
    "fieldname": "absent_count",
    "fieldtype": "Int",
    "label": "Absent Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "marked_by",
+   "fieldtype": "Link",
+   "label": "Marked By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "uploaded_filename",
+   "fieldtype": "Data",
+   "label": "Uploaded Filename",
+   "read_only": 1
+  },
+  {
+   "fieldname": "upload_timestamp",
+   "fieldtype": "Datetime",
+   "label": "Upload Timestamp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unknown_employee_logs",
+   "fieldtype": "Long Text",
+   "label": "Unknown Employee Logs",
    "read_only": 1
   },
   {

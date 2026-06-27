@@ -31,13 +31,9 @@ def get_context(context):
     context.trainer_dept = trainer_dept
 
     # Define session filters based on role
-    session_filters = {"status": ["in", ["Scheduled", "Ongoing", "Completed"]]}
+    session_filters = {"status": ["in", ["Scheduled", "Ongoing", "Completed", "Cancelled"]]}
     if trainer:
         session_filters["trainer"] = trainer.name
-    
-    if trainer_dept:
-        courses = [c.name for c in frappe.get_all("Training Course", filters={"department": trainer_dept})]
-        session_filters["course"] = ["in", courses]
 
     # Sessions list for marking
     context.sessions_to_mark = frappe.get_all(
@@ -47,15 +43,36 @@ def get_context(context):
         order_by="training_date desc"
     )
 
+    # Unique years for filters
+    years = sorted(list(set(
+        frappe.utils.getdate(s.training_date).year 
+        for s in context.sessions_to_mark 
+        if s.training_date
+    )), reverse=True)
+    if not years:
+        import datetime
+        years = [datetime.datetime.now().year]
+    context.years = years
+
+    context.months = [
+        {"value": 1, "label": "January"},
+        {"value": 2, "label": "February"},
+        {"value": 3, "label": "March"},
+        {"value": 4, "label": "April"},
+        {"value": 5, "label": "May"},
+        {"value": 6, "label": "June"},
+        {"value": 7, "label": "July"},
+        {"value": 8, "label": "August"},
+        {"value": 9, "label": "September"},
+        {"value": 10, "label": "October"},
+        {"value": 11, "label": "November"},
+        {"value": 12, "label": "December"}
+    ]
+
     # Fetch attendance summaries for dashboard KPI and registry table
     attendance_filters = {}
     if trainer:
         attendance_filters["trainer"] = trainer.name
-        
-    if trainer_dept:
-        courses = [c.name for c in frappe.get_all("Training Course", filters={"department": trainer_dept})]
-        sessions = [s.name for s in frappe.get_all("Training Session", filters={"course": ["in", courses]})]
-        attendance_filters["training_session"] = ["in", sessions]
 
     records = frappe.get_all(
         "Training Attendance",

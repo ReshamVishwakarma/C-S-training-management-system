@@ -1,57 +1,21 @@
 {% extends "training_portal/templates/trainer_base.html" %}
 
 {% block content_area %}
+<!-- SheetJS Library for parsing Excel and CSV client-side -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
-    /* Tabs styling */
-    .tab-nav {
-        display: flex;
-        gap: 8px;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 32px;
-        padding-bottom: 2px;
+    /* Full Page Width Overrides */
+    .container, .page-container, .main-container, .page_content, .page-content-wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 
-    .tab-btn {
-        background: none;
-        border: none;
-        padding: 12px 20px;
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text-muted);
-        cursor: pointer;
-        position: relative;
-        transition: all 0.2s ease;
-        border-radius: 8px 8px 0 0;
-    }
-
-    .tab-btn:hover {
-        color: var(--primary);
-        background-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .tab-btn.active {
-        color: var(--accent);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -3px;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background-color: var(--accent);
-        border-radius: 99px;
-    }
-
-    .tab-content {
-        display: none;
-    }
-
-    .tab-content.active {
-        display: block;
-    }
-
+    /* Shared Styles */
     .attendance-kpi-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -68,7 +32,6 @@
         flex-direction: column;
         justify-content: space-between;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
-        position: relative;
     }
 
     .kpi-top {
@@ -104,6 +67,7 @@
     .kpi-green .kpi-icon { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
     .kpi-red .kpi-icon { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
     .kpi-purple .kpi-icon { background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .kpi-orange .kpi-icon { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
     .progress-bar-wrapper {
         height: 6px;
@@ -119,10 +83,64 @@
         border-radius: 999px;
     }
 
+    /* Form and Filters Styling */
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 180px;
+        flex: 1;
+    }
+
+    .filter-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 14px;
+        background-color: white;
+        color: var(--text-main);
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Table layout */
+    .table-container {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+
     .lms-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
+        min-width: 1000px;
     }
 
     .lms-table th {
@@ -134,51 +152,43 @@
         padding: 16px 20px;
         background-color: #f8fafc;
         border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
     }
 
     .lms-table td {
-        padding: 18px 20px;
+        padding: 14px 20px;
         font-size: 14px;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
+        vertical-align: middle;
+        white-space: nowrap;
     }
 
     .lms-table tbody tr:hover {
         background-color: #f8fafc;
     }
 
-    /* Form control styling */
-    .form-group {
-        margin-bottom: 24px;
+    /* Warning Highlights for Unknown Trainees */
+    .row-warning {
+        background-color: #fffbeb !important;
+    }
+    .row-warning td {
+        border-bottom: 1px solid #fde68a !important;
     }
 
-    .form-group label {
-        display: block;
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--primary);
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 10px 14px;
+    /* Drag and Drop & Upload Section */
+    .upload-card {
+        background-color: var(--bg-card);
         border: 1px solid var(--border-color);
-        border-radius: 10px;
-        font-size: 14px;
-        color: var(--text-main);
-        transition: border-color 0.2s ease;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: var(--accent);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
     }
 
     .drag-drop-area {
         border: 2px dashed var(--border-color);
         border-radius: 12px;
-        padding: 40px;
+        padding: 30px;
         text-align: center;
         background-color: #f8fafc;
         cursor: pointer;
@@ -191,478 +201,837 @@
     }
 
     .drag-drop-area i {
-        font-size: 40px;
+        font-size: 32px;
         color: var(--accent);
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         display: block;
     }
 
-    /* Radio buttons row */
-    .status-options {
-        display: flex;
-        gap: 12px;
-    }
-
-    .status-option {
-        flex: 1;
-        position: relative;
-    }
-
-    .status-option input[type="radio"] {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .status-label {
-        display: block;
-        text-align: center;
-        padding: 8px 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+    /* Status Selector for Review */
+    .status-select {
+        padding: 6px 12px;
+        border-radius: 6px;
         font-size: 13px;
         font-weight: 600;
+        border: 1px solid var(--border-color);
         cursor: pointer;
-        transition: all 0.2s ease;
-        background-color: white;
     }
+    
+    .status-select.Present { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+    .status-select.Absent { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+    .status-select.Late { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+    .status-select.Excused { background-color: #e0f2fe; color: #075985; border-color: #0284c7; }
 
-    .status-option input[type="radio"]:checked + .status-label.opt-present {
-        background-color: #d1fae5;
-        border-color: #10b981;
-        color: #065f46;
-    }
-
-    .status-option input[type="radio"]:checked + .status-label.opt-absent {
-        background-color: #fee2e2;
-        border-color: #ef4444;
-        color: #991b1b;
-    }
-
-    .status-option input[type="radio"]:checked + .status-label.opt-late {
-        background-color: #fef3c7;
-        border-color: #f59e0b;
-        color: #92400e;
-    }
-
-    .status-option input[type="radio"]:checked + .status-label.opt-excused {
-        background-color: #e0f2fe;
-        border-color: #0284c7;
-        color: #075985;
+    /* Action bar */
+    .action-bar {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 16px 24px;
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
     }
 </style>
 
-<!-- Page Header -->
-<div class="page-header-widget">
+{% set session_id = frappe.form_dict.session %}
+
+{% if session_id %}
+<!-- STATE B: ATTENDANCE WORKSPACE -->
+<div class="mb-4">
+    <a href="/trainer_attendance" class="text-decoration-none text-muted font-weight-bold" style="font-size: 14px;">
+        <i class="bi bi-arrow-left me-2"></i>Back to Session List
+    </a>
+</div>
+
+<div class="page-header-widget mb-4">
     <div class="page-title-group">
-        <h1>Attendance Management Workspace</h1>
-        <p>Mark attendance, upload files, and view logs</p>
+        <h1 class="mb-1">Attendance Workspace: {{ session_id }}</h1>
+        <p id="session-metadata-desc" class="text-muted mb-0">Loading session metadata...</p>
     </div>
 </div>
 
-<!-- Navigation Tabs -->
-<div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('dashboard')">
-        <i class="bi bi-grid-1x2-fill me-2"></i>Dashboard
+<!-- Session Details (Read Only) -->
+<div class="table-container mb-4">
+    <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 20px;">Session Details</h3>
+    <div class="row">
+        <div class="col-md-3 form-group">
+            <label>Training Name</label>
+            <input type="text" class="form-control" id="sd-training-name" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Training Subcategory</label>
+            <input type="text" class="form-control" id="sd-subcategory" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Training Mode</label>
+            <input type="text" class="form-control" id="sd-training-mode" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Trainer</label>
+            <input type="text" class="form-control" id="sd-trainer" readonly style="background-color: #f1f5f9;">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-3 form-group">
+            <label>Scheduled Date</label>
+            <input type="text" class="form-control" id="sd-date" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-2 form-group">
+            <label>Start Time</label>
+            <input type="text" class="form-control" id="sd-start-time" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-2 form-group">
+            <label>End Time</label>
+            <input type="text" class="form-control" id="sd-end-time" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-2 form-group">
+            <label>Duration (Hours)</label>
+            <input type="text" class="form-control" id="sd-duration" readonly style="background-color: #f1f5f9;">
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Venue / Meeting Link</label>
+            <input type="text" class="form-control" id="sd-venue-link" readonly style="background-color: #f1f5f9;">
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Review Metrics -->
+<div class="attendance-kpi-grid">
+    <div class="kpi-card kpi-blue">
+        <div class="kpi-top">
+            <span class="kpi-label">Total Enrolled</span>
+            <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+        </div>
+        <div>
+            <span class="kpi-value" id="kpi-total-enrolled">0</span>
+            <span class="kpi-label d-block mt-1">Participants mapped</span>
+        </div>
+    </div>
+    
+    <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+            <span class="kpi-label">Present (Matched)</span>
+            <div class="kpi-icon"><i class="bi bi-person-check-fill"></i></div>
+        </div>
+        <div>
+            <span class="kpi-value" id="kpi-matched-present">0</span>
+            <span class="kpi-label d-block mt-1">Confirmed Present</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-red">
+        <div class="kpi-top">
+            <span class="kpi-label">Absent</span>
+            <div class="kpi-icon"><i class="bi bi-person-x-fill"></i></div>
+        </div>
+        <div>
+            <span class="kpi-value" id="kpi-total-absent">0</span>
+            <span class="kpi-label d-block mt-1">Confirmed Absent</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-orange">
+        <div class="kpi-top">
+            <span class="kpi-label">Unknown Employee Codes</span>
+            <div class="kpi-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        </div>
+        <div>
+            <span class="kpi-value" id="kpi-unknown-codes">0</span>
+            <span class="kpi-label d-block mt-1">Not in Employee Database</span>
+        </div>
+    </div>
+</div>
+
+<!-- Locked Alert Panel (if submitted) -->
+<div id="locked-alert" class="alert alert-warning mb-4" style="display: none; border-radius: 12px;">
+    <h5 class="alert-heading font-weight-bold" style="font-size: 15px; margin-bottom: 6px;">
+        <i class="bi bi-lock-fill me-2"></i>Attendance Logs Locked
+    </h5>
+    <p class="mb-0" style="font-size: 13.5px;">This attendance log has been submitted and locked. You can no longer edit statuses or upload files for this session.</p>
+</div>
+
+<!-- Upload & Template Area -->
+<div class="upload-card" id="upload-section-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 style="font-size: 16px; font-weight: 700; color: var(--primary); margin: 0;">Upload Attendance Sheet</h4>
+        <button class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-weight: 600; padding: 6px 14px;" onclick="downloadTemplate()">
+            <i class="bi bi-download me-2"></i>Download Template
+        </button>
+    </div>
+    
+    <div class="drag-drop-area" onclick="document.getElementById('attendance_file_input').click()" id="drop-zone">
+        <i class="bi bi-cloud-arrow-up-fill"></i>
+        <span class="d-block mb-1 font-weight-bold" style="font-size: 15px; color: var(--primary);">Choose Excel (.xlsx) / CSV file or drag & drop</span>
+        <span class="text-muted" style="font-size: 12px;">The sheet should contain an <b>Employee Code</b> column</span>
+        <input type="file" id="attendance_file_input" style="display: none;" accept=".csv,.xlsx" onchange="handleFileSelect(event)">
+    </div>
+    <div id="upload-metadata-info" class="text-center mt-3 text-muted" style="font-size: 13.5px; display: none;"></div>
+</div>
+
+<!-- Trainees Registry Card -->
+<div class="table-container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin: 0;">Trainees Registry</h3>
+            <p class="text-muted mb-0" style="font-size: 13px;">Review and modify attendance statuses</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center w-100 w-md-auto">
+            <input type="text" id="registry-search" class="form-control" style="max-width: 250px; font-size: 13.5px; border-radius: 8px;" placeholder="Search registry..." oninput="filterRegistryTable()">
+            <button class="btn btn-sm btn-outline-success" id="btn-mark-all-present" onclick="markAllRegistry('Present')" style="font-weight: 600;">Mark All Present</button>
+            <button class="btn btn-sm btn-outline-danger" id="btn-mark-all-absent" onclick="markAllRegistry('Absent')" style="font-weight: 600;">Mark All Absent</button>
+        </div>
+    </div>
+
+    <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
+        <table class="lms-table" id="registry-table">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Plant</th>
+                    <th>Location</th>
+                    <th>Reporting Manager</th>
+                    <th>Emp. Status</th>
+                    <th>Attendance Status</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody id="registry-tbody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Save Action Bar -->
+<div class="action-bar" id="save-action-bar">
+    <button class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="saveAttendance(false)">
+        Save Draft
     </button>
-    <button class="tab-btn" onclick="switchTab('manual')">
-        <i class="bi bi-pencil-square me-2"></i>Mark Attendance
-    </button>
-    <button class="tab-btn" onclick="switchTab('upload')">
-        <i class="bi bi-file-earmark-arrow-up-fill me-2"></i>Upload Sheet (Excel/CSV)
+    <button class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="saveAttendance(true)">
+        Submit Attendance
     </button>
 </div>
 
-<!-- TAB 1: DASHBOARD -->
-<div id="tab-dashboard" class="tab-content active">
-    <!-- Attendance Analytics Cards -->
-    <div class="attendance-kpi-grid">
-        <div class="kpi-card kpi-blue">
-            <div class="kpi-top">
-                <span class="kpi-label">Average Attendance Rate</span>
-                <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-            </div>
-            <div>
-                <span class="kpi-value">{{ attendance_percentage }}%</span>
-                <div class="progress-bar-wrapper">
-                    <div class="progress-bar-fill" style="width: {{ attendance_percentage }}%; background-color: #3b82f6;"></div>
-                </div>
-            </div>
-        </div>
+{% else %}
+<!-- STATE A: ATTENDANCE DASHBOARD (LIST VIEW) -->
+<div class="page-header-widget mb-4">
+    <div class="page-title-group">
+        <h1 class="mb-1">Attendance Management Workspace</h1>
+        <p class="text-muted mb-0">Select a training session to upload attendance sheets or manually record logs</p>
+    </div>
+</div>
 
-        <div class="kpi-card kpi-purple">
-            <div class="kpi-top">
-                <span class="kpi-label">Total Logged Trainees</span>
-                <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
-            </div>
-            <div>
-                <span class="kpi-value">{{ total_participants }}</span>
-                <span class="kpi-label">Trainees recorded</span>
-            </div>
+<!-- Attendance Analytics Cards -->
+<div class="attendance-kpi-grid">
+    <div class="kpi-card kpi-blue">
+        <div class="kpi-top">
+            <span class="kpi-label">Average Attendance Rate</span>
+            <div class="kpi-icon"><i class="bi bi-percent"></i></div>
         </div>
-
-        <div class="kpi-card kpi-green">
-            <div class="kpi-top">
-                <span class="kpi-label">Total Present Logs</span>
-                <div class="kpi-icon"><i class="bi bi-person-check-fill"></i></div>
-            </div>
-            <div>
-                <span class="kpi-value">{{ total_present }}</span>
-                <span class="kpi-label">Present & Late counts</span>
-            </div>
-        </div>
-
-        <div class="kpi-card kpi-red">
-            <div class="kpi-top">
-                <span class="kpi-label">Total Absent Logs</span>
-                <div class="kpi-icon"><i class="bi bi-person-x-fill"></i></div>
-            </div>
-            <div>
-                <span class="kpi-value">{{ total_absent }}</span>
-                <span class="kpi-label">Absent counts</span>
+        <div>
+            <span class="kpi-value">{{ attendance_percentage }}%</span>
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar-fill" style="width: {{ attendance_percentage }}%; background-color: #3b82f6;"></div>
             </div>
         </div>
     </div>
 
-    <!-- Attendance Registry Table -->
-    <div class="lms-card">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="m-0" style="font-size: 18px; font-weight: 700; color: var(--primary);">Attendance Log Registry</h3>
-            <span class="badge bg-light text-dark" style="font-size: 13px; font-weight: 600; padding: 6px 12px;">{{ records | length }} Sessions Recorded</span>
+    <div class="kpi-card kpi-purple">
+        <div class="kpi-top">
+            <span class="kpi-label">Total Logged Trainees</span>
+            <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
         </div>
+        <div>
+            <span class="kpi-value">{{ total_participants }}</span>
+            <span class="kpi-label">Trainees recorded</span>
+        </div>
+    </div>
 
-        {% if records %}
-            <div class="table-responsive">
-                <table class="lms-table">
-                    <thead>
-                        <tr>
-                            <th>Training Session</th>
-                            <th>Attendance Date</th>
-                            <th>Total Logged</th>
-                            <th>Present Count</th>
-                            <th>Absent Count</th>
-                            <th>Session Attendance Rate</th>
-                            <th style="width: 120px; text-align: center;">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in records %}
-                            <tr>
-                                <td style="font-weight: 600; color: var(--primary);">
-                                    {{ row.training_session }}
-                                </td>
-                                <td style="color: var(--text-muted);">
-                                    <i class="bi bi-calendar-event me-2"></i>{{ row.date }}
-                                </td>
-                                <td style="font-weight: 500;">
-                                    {{ row.total_participants or 0 }}
-                                </td>
-                                <td class="text-success" style="font-weight: 600;">
-                                    {{ row.present_count or 0 }}
-                                </td>
-                                <td class="text-danger" style="font-weight: 600;">
-                                    {{ row.absent_count or 0 }}
-                                </td>
-                                <td>
-                                    {% if row.total_participants %}
-                                        {% set rate = ((row.present_count or 0) / row.total_participants * 100) | round(1) %}
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span style="font-weight: 600; min-width: 45px;">{{ rate }}%</span>
-                                            <div class="progress-bar-wrapper flex-grow-1" style="height: 4px; margin: 0; max-width: 80px;">
-                                                <div class="progress-bar-fill" style="width: {{ rate }}%; background-color: {% if rate >= 85 %}#10b981{% elif rate >= 60 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
-                                            </div>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td style="text-align: center;">
-                                    <a href="/trainer_session_details?session={{ row.training_session }}" class="btn btn-sm btn-outline-dark" style="border-radius: 8px; font-weight: 600; padding: 6px 12px; font-size: 13px;">
-                                        View
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-clipboard-x" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
-                <p class="mt-3 text-muted" style="font-size: 14px; margin: 0;">No attendance records have been posted yet.</p>
-            </div>
-        {% endif %}
+    <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+            <span class="kpi-label">Total Present Logs</span>
+            <div class="kpi-icon"><i class="bi bi-person-check-fill"></i></div>
+        </div>
+        <div>
+            <span class="kpi-value">{{ total_present }}</span>
+            <span class="kpi-label">Present & Late counts</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-red">
+        <div class="kpi-top">
+            <span class="kpi-label">Total Absent Logs</span>
+            <div class="kpi-icon"><i class="bi bi-person-x-fill"></i></div>
+        </div>
+        <div>
+            <span class="kpi-value">{{ total_absent }}</span>
+            <span class="kpi-label">Absent counts</span>
+        </div>
     </div>
 </div>
 
-<!-- TAB 2: MANUAL MARKING -->
-<div id="tab-manual" class="tab-content">
-    <div class="lms-card">
-        <h3 class="mb-4" style="font-size: 18px; font-weight: 700; color: var(--primary);">Mark Trainee Attendance Manually</h3>
-        
-        <div class="row">
-            <div class="col-md-6 form-group">
-                <label for="manual_session_select">Select Training Session *</label>
-                <select id="manual_session_select" class="form-control" onchange="loadSessionTrainees(this.value)">
-                    <option value="">-- Select Session --</option>
+<!-- Sessions Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-group">
+        <label for="filter-month">Month</label>
+        <select id="filter-month" class="form-select" onchange="applySessionFilters()">
+            <option value="">-- All Months --</option>
+            {% for m in months %}
+                <option value="{{ m.value }}">{{ m.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <label for="filter-year">Year</label>
+        <select id="filter-year" class="form-select" onchange="applySessionFilters()">
+            <option value="">-- All Years --</option>
+            {% for y in years %}
+                <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group" style="min-width: 250px;">
+        <label for="filter-search">Training Name / ID</label>
+        <input type="text" id="filter-search" class="form-control" placeholder="Search training name or session ID..." oninput="applySessionFilters()">
+    </div>
+
+    <button class="btn btn-outline-secondary" style="border-radius: 8px; font-weight: 600; padding: 10px 18px;" onclick="resetDashboardFilters()">
+        Reset Filters
+    </button>
+</div>
+
+<!-- Sessions List Grid -->
+<div class="table-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin: 0;">Conducting Training Sessions</h3>
+        <span class="badge bg-light text-dark" id="session-count-badge" style="font-size: 13px; font-weight: 600; padding: 6px 12px;">{{ sessions_to_mark | length }} Sessions</span>
+    </div>
+
+    {% if sessions_to_mark %}
+        <div class="table-responsive">
+            <table class="lms-table" id="sessions-list-table">
+                <thead>
+                    <tr>
+                        <th>Session ID</th>
+                        <th>Training Name</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th style="width: 180px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="sessions-list-tbody">
                     {% for s in sessions_to_mark %}
-                        <option value="{{ s.name }}">{{ s.training_name }} [{{ s.name }}] ({{ s.training_date }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-
-        <div id="trainee-list-container" style="display: none; margin-top: 24px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 style="font-size: 16px; font-weight: 700; color: var(--primary); margin: 0;">Trainees Registry</h4>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-success" onclick="markAllStatus('Present')">Mark All Present</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="markAllStatus('Absent')">Mark All Absent</button>
-                </div>
-            </div>
-
-            <div class="table-responsive">
-                <table class="lms-table" id="manual-marking-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">Employee ID</th>
-                            <th style="width: 25%;">Employee Name</th>
-                            <th style="width: 30%;">Attendance Status</th>
-                            <th style="width: 20%;">Remarks</th>
+                        {% set date_obj = frappe.utils.getdate(s.training_date) if s.training_date else None %}
+                        <tr data-session="{{ s.name }}" 
+                            data-name="{{ s.training_name | lower }}" 
+                            data-year="{{ date_obj.year if date_obj else '' }}" 
+                            data-month="{{ date_obj.month if date_obj else '' }}">
+                            <td style="font-weight: 700; color: var(--accent);">{{ s.name }}</td>
+                            <td style="font-weight: 600; color: var(--primary);">{{ s.training_name }}</td>
+                            <td style="color: var(--text-muted);">
+                                <i class="bi bi-calendar-event me-2"></i>{{ s.training_date or '-' }}
+                            </td>
+                            <td>
+                                <span class="badge {% if s.status == 'Scheduled' %}bg-info text-dark{% elif s.status == 'Ongoing' %}bg-warning text-dark{% elif s.status == 'Completed' %}bg-success{% else %}bg-danger{% endif %}" style="font-weight: 600; font-size: 12px; padding: 5px 10px;">
+                                    {{ s.status }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="/trainer_attendance?session={{ s.name }}" class="btn btn-sm btn-primary" style="border-radius: 8px; font-weight: 600; padding: 6px 14px; font-size: 13px;">
+                                    Take Attendance
+                                </a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody id="manual-marking-tbody">
-                        <!-- Populated via AJAX -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="d-flex justify-content-end gap-3 mt-4">
-                <button id="btn-save-draft" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="submitManualAttendance(false)">
-                    Save Draft
-                </button>
-                <button id="btn-submit-attendance" class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="submitManualAttendance(true)">
-                    Submit & Lock Attendance
-                </button>
-            </div>
-        </div>
-
-        <div id="no-trainees-fallback" class="text-center py-5" style="display: none;">
-            <i class="bi bi-people" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
-            <p class="mt-3 text-muted">No participants are currently enrolled in this session.</p>
-        </div>
-    </div>
-</div>
-
-<!-- TAB 3: CSV UPLOAD -->
-<div id="tab-upload" class="tab-content">
-    <div class="lms-card">
-        <h3 class="mb-4" style="font-size: 18px; font-weight: 700; color: var(--primary);">Upload Attendance Spreadsheet</h3>
-        
-        <div class="row">
-            <div class="col-md-6 form-group">
-                <label for="upload_session_select">Select Training Session *</label>
-                <select id="upload_session_select" class="form-control">
-                    <option value="">-- Select Session --</option>
-                    {% for s in sessions_to_mark %}
-                        <option value="{{ s.name }}">{{ s.training_name }} [{{ s.name }}] ({{ s.training_date }})</option>
                     {% endfor %}
-                </select>
-            </div>
+                </tbody>
+            </table>
         </div>
-
-        <div class="form-group mt-3">
-            <label>Upload CSV File *</label>
-            <p class="text-muted" style="font-size: 13px;">Format: CSV file must contain a header row. Headers required: <code>employee_id</code>, <code>status</code> (Present, Absent, Late, Excused), <code>remarks</code> (optional).</p>
-            
-            <div class="drag-drop-area" onclick="document.getElementById('csv_file_input').click()" id="drop-zone">
-                <i class="bi bi-cloud-arrow-up-fill"></i>
-                <span class="d-block mb-1 font-weight-bold" style="font-size: 15px; color: var(--primary);">Choose file or drag & drop</span>
-                <span class="text-muted" style="font-size: 12px;">Only CSV spreadsheets (.csv) supported</span>
-                <input type="file" id="csv_file_input" style="display: none;" accept=".csv" onchange="handleFileSelect(event)">
-            </div>
-            <div id="selected-file-name" class="text-center mt-2 text-primary font-weight-bold" style="font-size: 14px;"></div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-clipboard-x" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
+            <p class="mt-3 text-muted">No training sessions found for you.</p>
         </div>
-
-        <!-- Validation Error Panel -->
-        <div id="csv-errors-container" class="alert alert-danger mt-4" style="display: none; border-radius: 12px;">
-            <h5 class="alert-heading" style="font-size: 15px; font-weight: 700;"><i class="bi bi-exclamation-triangle-fill me-2"></i>Spreadsheet Validation Errors</h5>
-            <ul id="csv-errors-list" class="mb-0" style="font-size: 13px; padding-left: 20px;">
-                <!-- Filled dynamically -->
-            </ul>
-        </div>
-
-        <!-- Import Summary / Preview Panel -->
-        <div id="csv-preview-container" style="display: none; margin-top: 32px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 style="font-size: 16px; font-weight: 700; color: var(--primary); margin: 0;">Sheet Import Preview Summary</h4>
-                <span id="preview-row-count" class="badge bg-success" style="font-size: 13px; padding: 6px 12px;">0 Records Validated</span>
-            </div>
-
-            <div class="table-responsive">
-                <table class="lms-table" id="csv-preview-table">
-                    <thead>
-                        <tr>
-                            <th>Employee ID</th>
-                            <th>Employee Name</th>
-                            <th>Attendance Status</th>
-                            <th>Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody id="csv-preview-tbody">
-                        <!-- Filled dynamically -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="d-flex justify-content-end gap-3 mt-4">
-                <button class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="clearCSVImport()">
-                    Cancel
-                </button>
-                <button class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="confirmCSVImport(false)">
-                    Import as Draft
-                </button>
-                <button class="btn btn-success px-4 py-2" style="border-radius: 10px; font-weight: 600;" onclick="confirmCSVImport(true)">
-                    Import & Submit
-                </button>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let activeTab = 'dashboard';
-    let currentTrainees = [];
-    let validatedCSVRows = [];
+    // Global State variables
+    let attendanceData = [];
+    let currentDocstatus = 0;
+    let uploadedFilename = null;
+    let uploadTimestamp = null;
+    const sessionName = "{{ session_id or '' }}";
 
-    function switchTab(tabId) {
-        // Remove active class from all buttons and panels
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(panel => panel.classList.remove('active'));
-
-        // Find correct button and tab content
-        const btn = document.querySelector(`.tab-nav button[onclick="switchTab('${tabId}')"]`);
-        const panel = document.getElementById(`tab-${tabId}`);
-        
-        if (btn && panel) {
-            btn.classList.add('active');
-            panel.classList.add('active');
-            activeTab = tabId;
+    // Setup drag and drop for Workspace view
+    document.addEventListener("DOMContentLoaded", () => {
+        if (sessionName) {
+            loadSessionWorkspace();
+            setupDragAndDrop();
         }
+    });
+
+    // ------------------------------------
+    // STATE A: DASHBOARD FILTERING
+    // ------------------------------------
+    function applySessionFilters() {
+        const monthVal = document.getElementById('filter-month').value;
+        const yearVal = document.getElementById('filter-year').value;
+        const searchVal = document.getElementById('filter-search').value.trim().toLowerCase();
+
+        const tbody = document.getElementById('sessions-list-tbody');
+        if (!tbody) return;
+
+        const rows = tbody.getElementsByTagName('tr');
+        let visibleCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const tr = rows[i];
+            const rName = tr.getAttribute('data-name');
+            const rSession = tr.getAttribute('data-session').toLowerCase();
+            const rYear = tr.getAttribute('data-year');
+            const rMonth = tr.getAttribute('data-month');
+
+            let matchesMonth = !monthVal || rMonth === monthVal;
+            let matchesYear = !yearVal || rYear === yearVal;
+            let matchesSearch = !searchVal || rName.includes(searchVal) || rSession.includes(searchVal);
+
+            if (matchesMonth && matchesYear && matchesSearch) {
+                tr.style.display = '';
+                visibleCount++;
+            } else {
+                tr.style.display = 'none';
+            }
+        }
+
+        document.getElementById('session-count-badge').innerText = `${visibleCount} Sessions`;
     }
 
-    // MANUAL MARKING
-    function loadSessionTrainees(sessionName) {
-        const container = document.getElementById('trainee-list-container');
-        const fallback = document.getElementById('no-trainees-fallback');
-        const tbody = document.getElementById('manual-marking-tbody');
-        
-        if (!sessionName) {
-            container.style.display = 'none';
-            fallback.style.display = 'none';
-            return;
-        }
+    function resetDashboardFilters() {
+        document.getElementById('filter-month').value = '';
+        document.getElementById('filter-year').value = '';
+        document.getElementById('filter-search').value = '';
+        applySessionFilters();
+    }
 
+    // ------------------------------------
+    // STATE B: WORKSPACE LOGIC
+    // ------------------------------------
+    function loadSessionWorkspace() {
         frappe.call({
             method: "training_portal.training_portal.doctype.training_attendance.training_attendance.fetch_enrollments",
             args: { training_session: sessionName },
             callback: function(r) {
-                if (r.message && r.message.length > 0) {
-                    currentTrainees = r.message;
-                    tbody.innerHTML = '';
-                    
-                    currentTrainees.forEach((t, idx) => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td style="font-weight: 600; color: var(--primary);">${t.employee}</td>
-                            <td>${t.employee_name || ''}</td>
-                            <td>
-                                <div class="status-options">
-                                    <div class="status-option">
-                                        <input type="radio" name="status-${idx}" id="present-${idx}" value="Present" checked>
-                                        <label for="present-${idx}" class="status-label opt-present">Present</label>
-                                    </div>
-                                    <div class="status-option">
-                                        <input type="radio" name="status-${idx}" id="absent-${idx}" value="Absent">
-                                        <label for="absent-${idx}" class="status-label opt-absent">Absent</label>
-                                    </div>
-                                    <div class="status-option">
-                                        <input type="radio" name="status-${idx}" id="late-${idx}" value="Late">
-                                        <label for="late-${idx}" class="status-label opt-late">Late</label>
-                                    </div>
-                                    <div class="status-option">
-                                        <input type="radio" name="status-${idx}" id="excused-${idx}" value="Excused">
-                                        <label for="excused-${idx}" class="status-label opt-excused">Excused</label>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <input type="text" id="remark-${idx}" class="form-control py-1 px-2" style="font-size: 13px;" placeholder="Add remarks...">
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
+                if (r.message) {
+                    attendanceData = r.message.rows;
+                    currentDocstatus = r.message.docstatus;
+                    uploadedFilename = r.message.uploaded_filename;
+                    uploadTimestamp = r.message.upload_timestamp;
+
+                    // Set header metadata and populate read-only fields
+                    if (r.message.session_details) {
+                        const sd = r.message.session_details;
+                        document.getElementById('sd-training-name').value = sd.training_name || "-";
+                        document.getElementById('sd-subcategory').value = sd.subcategory || "-";
+                        document.getElementById('sd-training-mode').value = sd.training_mode || "-";
+                        document.getElementById('sd-trainer').value = sd.trainer || "-";
+                        document.getElementById('sd-date').value = sd.training_date || "-";
+                        document.getElementById('sd-start-time').value = sd.start_time_formatted || "-";
+                        document.getElementById('sd-end-time').value = sd.end_time || "-";
+                        document.getElementById('sd-duration').value = sd.duration_hours || "-";
+                        document.getElementById('sd-venue-link').value = sd.venue_or_link || "-";
+                        
+                        document.getElementById('session-metadata-desc').innerText = 
+                            `${sd.training_name} | Scheduled on ${sd.training_date} | Led by ${sd.trainer}`;
+                    }
+
+                    // Render table and calculate KPI metrics
+                    calculateKPIs();
+                    renderRegistryTable();
+
+                    // If submitted, lock controls
+                    if (currentDocstatus === 1) {
+                        lockWorkspace();
+                    }
+
+                    // Show upload metadata if available
+                    if (uploadedFilename) {
+                        showUploadMetadata();
+                    }
+                }
+            }
+        });
+    }
+
+    function calculateKPIs() {
+        let total = attendanceData.length;
+        let present = 0;
+        let absent = 0;
+        let unknown = 0;
+
+        attendanceData.forEach(row => {
+            if (row.is_temporary === 1) {
+                unknown++;
+            }
+            
+            if (row.attendance_status === 'Present' || row.attendance_status === 'Late') {
+                present++;
+            } else if (row.attendance_status === 'Absent' || row.attendance_status === 'Excused') {
+                absent++;
+            }
+        });
+
+        document.getElementById('kpi-total-enrolled').innerText = total;
+        document.getElementById('kpi-matched-present').innerText = present;
+        document.getElementById('kpi-total-absent').innerText = absent;
+        document.getElementById('kpi-unknown-codes').innerText = unknown;
+    }
+
+    function renderRegistryTable(filteredRows = null) {
+        const tbody = document.getElementById('registry-tbody');
+        tbody.innerHTML = '';
+        
+        const rowsToRender = filteredRows || attendanceData;
+
+        if (rowsToRender.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-muted">No trainees found matching query.</td></tr>`;
+            return;
+        }
+
+        rowsToRender.forEach((row, idx) => {
+            const globalIdx = attendanceData.indexOf(row);
+            const tr = document.createElement('tr');
+            if (row.is_temporary === 1) {
+                tr.classList.add('row-warning');
+            }
+
+            const isLocked = currentDocstatus === 1;
+            const selectOptions = ['Present', 'Absent', 'Late', 'Excused'].map(opt => 
+                `<option value="${opt}" ${row.attendance_status === opt ? 'selected' : ''}>${opt}</option>`
+            ).join('');
+
+            const selectClass = row.attendance_status;
+
+            tr.innerHTML = `
+                <td style="font-weight: 700; color: ${row.is_temporary ? '#b45309' : 'var(--accent)'};">
+                    ${row.is_temporary ? row.temporary_employee_code : (row.employee_id && row.employee_id !== '-' ? row.employee_id : row.employee)}
+                </td>
+                <td style="font-weight: 600;">${row.employee_name}</td>
+                <td>${row.email}</td>
+                <td>${row.department}</td>
+                <td>${row.designation}</td>
+                <td>${row.plant}</td>
+                <td>${row.location}</td>
+                <td>${row.reporting_manager_name || row.reporting_manager}</td>
+                <td>
+                    <span class="badge ${row.status === 'ACTIVE' || row.status === 'Active' ? 'bg-success' : 'bg-secondary'}" style="font-size: 11px;">
+                        ${row.status}
+                    </span>
+                </td>
+                <td>
+                    <select class="status-select ${selectClass}" id="status-select-${globalIdx}" onchange="updateRowStatus(${globalIdx}, this.value)" ${isLocked ? 'disabled' : ''}>
+                        ${selectOptions}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control py-1 px-2" style="font-size: 13px; max-width: 180px;" 
+                           value="${row.remarks || ''}" placeholder="Add remarks..." 
+                           onchange="updateRowRemarks(${globalIdx}, this.value)" ${isLocked ? 'disabled' : ''}>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateRowStatus(globalIdx, value) {
+        attendanceData[globalIdx].attendance_status = value;
+        const select = document.getElementById(`status-select-${globalIdx}`);
+        select.className = `status-select ${value}`;
+        calculateKPIs();
+    }
+
+    function updateRowRemarks(globalIdx, value) {
+        attendanceData[globalIdx].remarks = value;
+    }
+
+    function filterRegistryTable() {
+        const query = document.getElementById('registry-search').value.trim().toLowerCase();
+        if (!query) {
+            renderRegistryTable();
+            return;
+        }
+
+        const filtered = attendanceData.filter(row => {
+            const code = (row.is_temporary ? row.temporary_employee_code : row.employee).toLowerCase();
+            const name = row.employee_name.toLowerCase();
+            const email = row.email.toLowerCase();
+            const dept = row.department.toLowerCase();
+            const desig = row.designation.toLowerCase();
+            const manager = (row.reporting_manager_name || row.reporting_manager).toLowerCase();
+
+            return code.includes(query) || 
+                   name.includes(query) || 
+                   email.includes(query) || 
+                   dept.includes(query) || 
+                   desig.includes(query) || 
+                   manager.includes(query);
+        });
+
+        renderRegistryTable(filtered);
+    }
+
+    function markAllRegistry(status) {
+        if (currentDocstatus === 1) return;
+        attendanceData.forEach((row, idx) => {
+            row.attendance_status = status;
+        });
+        calculateKPIs();
+        renderRegistryTable();
+        frappe.show_alert({message: `All trainees marked ${status}.`, indicator: 'green'});
+    }
+
+    function lockWorkspace() {
+        document.getElementById('locked-alert').style.display = 'block';
+        document.getElementById('upload-section-card').style.display = 'none';
+        document.getElementById('save-action-bar').style.display = 'none';
+        document.getElementById('btn-mark-all-present').style.display = 'none';
+        document.getElementById('btn-mark-all-absent').style.display = 'none';
+    }
+
+    function showUploadMetadata() {
+        const div = document.getElementById('upload-metadata-info');
+        div.innerHTML = `
+            <i class="bi bi-file-earmark-check-fill text-success me-2"></i>
+            Attendance uploaded via sheet: <b>${uploadedFilename}</b> on <b>${uploadTimestamp}</b>
+        `;
+        div.style.display = 'block';
+    }
+
+    // ------------------------------------
+    // CSV/EXCEL UPLOAD PROCESSING
+    // ------------------------------------
+    function handleFileSelect(evt) {
+        const files = evt.target.files;
+        if (!files || files.length === 0) return;
+        processFile(files[0]);
+    }
+
+    function processFile(file) {
+        if (currentDocstatus === 1) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+            
+            if (json.length === 0) {
+                frappe.show_alert({message: "The uploaded file is empty.", indicator: "red"});
+                return;
+            }
+
+            let codeColIdx = -1;
+            const headers = json[0].map(h => String(h || '').trim().toLowerCase());
+            
+            const targetHeaders = ["employee code", "employee_code", "employee id", "employee_id", "employee", "code", "id"];
+            for (let target of targetHeaders) {
+                codeColIdx = headers.indexOf(target);
+                if (codeColIdx !== -1) break;
+            }
+
+            if (codeColIdx === -1) {
+                codeColIdx = 0;
+            }
+
+            const codes = [];
+            for (let i = 1; i < json.length; i++) {
+                const row = json[i];
+                if (row && row[codeColIdx]) {
+                    const val = String(row[codeColIdx]).trim();
+                    if (val && val !== "N/A" && val !== "undefined" && val !== "") {
+                        codes.push(val);
+                    }
+                }
+            }
+
+            if (codes.length === 0) {
+                frappe.show_alert({message: "No employee codes found in sheet.", indicator: "red"});
+                return;
+            }
+
+            uploadedFilename = file.name;
+            uploadTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+            mapUploadedCodes(codes);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function mapUploadedCodes(codes) {
+        frappe.call({
+            method: "training_portal.training_portal.doctype.training_attendance.training_attendance.check_employee_codes",
+            args: { codes: codes },
+            callback: function(r) {
+                if (r.message) {
+                    const checkResults = r.message;
+                    const uploadedCodesSet = new Set(codes);
+                    const newAttendanceData = [];
+
+                    // 1. Map existing enrolled trainees
+                    attendanceData.forEach(row => {
+                        if (row.is_temporary === 0) {
+                            if (uploadedCodesSet.has(row.employee) || uploadedCodesSet.has(row.employee_id)) {
+                                row.attendance_status = "Present";
+                            } else {
+                                row.attendance_status = "Absent";
+                            }
+                            newAttendanceData.push(row);
+                        }
                     });
 
-                    container.style.display = 'block';
-                    fallback.style.display = 'none';
-                } else {
-                    currentTrainees = [];
-                    container.style.display = 'none';
-                    fallback.style.display = 'block';
+                    // 2. Map codes in uploaded sheet that are not currently in our local enrolled list
+                    codes.forEach(code => {
+                        const isEnrolled = attendanceData.some(row => (row.employee === code || row.employee_id === code) && row.is_temporary === 0);
+                        if (!isEnrolled) {
+                            const res = checkResults[code];
+                            if (res && res.exists) {
+                                newAttendanceData.push({
+                                    "employee": res.employee,
+                                    "employee_name": res.employee_name,
+                                    "email": res.email,
+                                    "department": res.department,
+                                    "designation": res.designation,
+                                    "plant": res.plant,
+                                    "location": res.location,
+                                    "reporting_manager": res.reporting_manager,
+                                    "reporting_manager_name": res.reporting_manager_name,
+                                    "status": res.status,
+                                    "attendance_status": "Present",
+                                    "remarks": "Auto-enrolled from sheet",
+                                    "is_temporary": 0,
+                                    "temporary_employee_code": ""
+                                });
+                            } else {
+                                newAttendanceData.push({
+                                    "employee": "",
+                                    "employee_name": "N/A",
+                                    "email": "N/A",
+                                    "department": "N/A",
+                                    "designation": "N/A",
+                                    "plant": "N/A",
+                                    "location": "N/A",
+                                    "reporting_manager": "N/A",
+                                    "reporting_manager_name": "N/A",
+                                    "status": "N/A",
+                                    "attendance_status": "Present",
+                                    "remarks": "Unknown Employee",
+                                    "is_temporary": 1,
+                                    "temporary_employee_code": code
+                                });
+                            }
+                        }
+                    });
+
+                    attendanceData = newAttendanceData;
+                    calculateKPIs();
+                    renderRegistryTable();
+                    showUploadMetadata();
+                    frappe.show_alert({message: "Spreadsheet parsed and mapped successfully! Review before saving.", indicator: "green"});
                 }
             }
         });
     }
 
-    function markAllStatus(status) {
-        currentTrainees.forEach((t, idx) => {
-            const radio = document.getElementById(`${status.toLowerCase()}-${idx}`);
-            if (radio) radio.checked = true;
+    function setupDragAndDrop() {
+        const dropZone = document.getElementById('drop-zone');
+        if (!dropZone) return;
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--accent)';
+                dropZone.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+            }, false);
         });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--border-color)';
+                dropZone.style.backgroundColor = '#f8fafc';
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                processFile(files[0]);
+            }
+        }, false);
     }
 
-    function submitManualAttendance(submit) {
-        const sessionSelect = document.getElementById('manual_session_select');
-        const sessionName = sessionSelect.value;
-        if (!sessionName) return;
+    function downloadTemplate() {
+        const csvContent = "Employee Code\n";
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `attendance_template_${sessionName}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        frappe.show_alert({message: "Template download triggered.", indicator: "blue"});
+    }
 
-        const data = [];
-        currentTrainees.forEach((t, idx) => {
-            const statusRadios = document.getElementsByName(`status-${idx}`);
-            let selectedStatus = 'Present';
-            for (const radio of statusRadios) {
-                if (radio.checked) {
-                    selectedStatus = radio.value;
-                    break;
-                }
-            }
-            const remarkInput = document.getElementById(`remark-${idx}`);
-            data.push({
-                employee: t.employee,
-                attendance_status: selectedStatus,
-                remarks: remarkInput ? remarkInput.value : ""
-            });
-        });
+    // ------------------------------------
+    // SAVE / SUBMIT ACTIONS
+    // ------------------------------------
+    function saveAttendance(submit) {
+        if (currentDocstatus === 1) return;
 
+        if (submit) {
+            frappe.confirm(
+                __("Are you sure you want to Submit and Lock attendance? You will not be able to edit these records again."),
+                () => { executeSave(true); }
+            );
+        } else {
+            executeSave(false);
+        }
+    }
+
+    function executeSave(submit) {
         frappe.call({
             method: "training_portal.training_portal.doctype.training_attendance.training_attendance.submit_manual_attendance",
             args: {
                 session_name: sessionName,
-                attendance_data: data,
-                submit: submit ? 1 : 0
+                attendance_data: attendanceData,
+                submit: submit ? 1 : 0,
+                uploaded_filename: uploadedFilename,
+                upload_timestamp: uploadTimestamp
             },
             callback: function(r) {
                 if (r.message && r.message.status === 'success') {
                     frappe.show_alert({
-                        message: submit ? __('Attendance submitted and finalized!') : __('Attendance saved as Draft!'),
+                        message: submit ? __('Attendance logs submitted and locked!') : __('Attendance logs saved as Draft!'),
                         indicator: 'green'
                     });
                     setTimeout(() => {
                         window.location.reload();
-                    }, 1500);
+                    }, 1200);
                 } else {
                     frappe.show_alert({
                         message: __('Error saving attendance logs'),
@@ -672,160 +1041,5 @@
             }
         });
     }
-
-    // CSV IMPORT
-    function handleFileSelect(evt) {
-        const files = evt.target.files;
-        if (!files || files.length === 0) return;
-        
-        const file = files[0];
-        document.getElementById('selected-file-name').innerText = `Selected: ${file.name}`;
-        
-        const sessionSelect = document.getElementById('upload_session_select');
-        const sessionName = sessionSelect.value;
-        if (!sessionName) {
-            frappe.show_alert({ message: __('Please select a Training Session first.'), indicator: 'orange' });
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const text = e.target.result;
-            validateCSVData(sessionName, text);
-        };
-        reader.readAsText(file);
-    }
-
-    function validateCSVData(sessionName, csvText) {
-        const errorContainer = document.getElementById('csv-errors-container');
-        const errorList = document.getElementById('csv-errors-list');
-        const previewContainer = document.getElementById('csv-preview-container');
-        const previewTbody = document.getElementById('csv-preview-tbody');
-        const countSpan = document.getElementById('preview-row-count');
-
-        frappe.call({
-            method: "training_portal.training_portal.doctype.training_attendance.training_attendance.validate_attendance_csv",
-            args: {
-                session_name: sessionName,
-                csv_data: csvText
-            },
-            callback: function(r) {
-                if (r.message && r.message.status === 'success') {
-                    validatedCSVRows = r.message.rows;
-                    errorContainer.style.display = 'none';
-                    previewTbody.innerHTML = '';
-                    
-                    validatedCSVRows.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td style="font-weight: 600; color: var(--primary);">${row.employee}</td>
-                            <td>${row.employee_name || ''}</td>
-                            <td>
-                                <span class="badge ${
-                                    row.attendance_status === 'Present' ? 'bg-success' :
-                                    row.attendance_status === 'Late' ? 'bg-warning text-dark' :
-                                    row.attendance_status === 'Excused' ? 'bg-info text-dark' : 'bg-danger'
-                                }">${row.attendance_status}</span>
-                            </td>
-                            <td>${row.remarks || '-'}</td>
-                        `;
-                        previewTbody.appendChild(tr);
-                    });
-
-                    countSpan.innerText = `${validatedCSVRows.length} Records Validated`;
-                    previewContainer.style.display = 'block';
-                } else if (r.message && r.message.status === 'error') {
-                    validatedCSVRows = [];
-                    previewContainer.style.display = 'none';
-                    errorList.innerHTML = '';
-                    
-                    if (r.message.errors) {
-                        r.message.errors.forEach(err => {
-                            const li = document.createElement('li');
-                            li.innerText = err;
-                            errorList.appendChild(li);
-                        });
-                    } else if (r.message.message) {
-                        const li = document.createElement('li');
-                        li.innerText = r.message.message;
-                        errorList.appendChild(li);
-                    }
-
-                    errorContainer.style.display = 'block';
-                }
-            }
-        });
-    }
-
-    function confirmCSVImport(submit) {
-        const sessionSelect = document.getElementById('upload_session_select');
-        const sessionName = sessionSelect.value;
-        if (!sessionName || validatedCSVRows.length === 0) return;
-
-        frappe.call({
-            method: "training_portal.training_portal.doctype.training_attendance.training_attendance.import_attendance_csv",
-            args: {
-                session_name: sessionName,
-                rows: validatedCSVRows,
-                submit: submit ? 1 : 0
-            },
-            callback: function(r) {
-                if (r.message && r.message.status === 'success') {
-                    frappe.show_alert({
-                        message: submit ? __('Attendance sheet imported & submitted!') : __('Attendance sheet imported as Draft!'),
-                        indicator: 'green'
-                    });
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    frappe.show_alert({
-                        message: __('Error importing spreadsheet'),
-                        indicator: 'red'
-                    });
-                }
-            }
-        });
-    }
-
-    function clearCSVImport() {
-        document.getElementById('csv_file_input').value = '';
-        document.getElementById('selected-file-name').innerText = '';
-        document.getElementById('csv-errors-container').style.display = 'none';
-        document.getElementById('csv-preview-container').style.display = 'none';
-        validatedCSVRows = [];
-    }
-
-    // Setup drag and drop events
-    document.addEventListener("DOMContentLoaded", () => {
-        const dropZone = document.getElementById('drop-zone');
-        if (dropZone) {
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    dropZone.style.borderColor = 'var(--accent)';
-                    dropZone.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    dropZone.style.borderColor = 'var(--border-color)';
-                    dropZone.style.backgroundColor = '#f8fafc';
-                }, false);
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                if (files && files.length > 0) {
-                    document.getElementById('csv_file_input').files = files;
-                    const event = { target: { files: files } };
-                    handleFileSelect(event);
-                }
-            }, false);
-        }
-    });
 </script>
 {% endblock %}

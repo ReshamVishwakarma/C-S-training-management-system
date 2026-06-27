@@ -40,9 +40,26 @@ class TrainingAttendance(Document):
             elif row.attendance_status in ["Absent", "Excused"]:
                 absent += 1
 
+        # Also add unknown employee codes
+        unknown_count = 0
+        unknown_logs = self.get("unknown_employee_logs")
+        if unknown_logs:
+            try:
+                import json
+                logs = json.loads(unknown_logs)
+                unknown_count = len(logs)
+                for log in logs:
+                    status = log.get("attendance_status", "Present")
+                    if status in ["Present", "Late"]:
+                        present += 1
+                    elif status in ["Absent", "Excused"]:
+                        absent += 1
+            except Exception:
+                pass
+
         self.present_count = present
         self.absent_count = absent
-        self.total_participants = len(self.attendance_details)
+        self.total_participants = len(self.attendance_details) + unknown_count
 
     def validate_enrollments(self):
         seen_employees = set()
@@ -201,6 +218,30 @@ def fetch_enrollments(training_session):
     check_portal_permission()
     validate_session_trainer(training_session)
 
+    attendance_name = frappe.db.get_value("Training Attendance", {"training_session": training_session})
+    existing_details = {}
+    docstatus = 0
+    uploaded_filename = None
+    upload_timestamp = None
+    unknown_employee_logs = []
+
+    if attendance_name:
+        doc = frappe.get_doc("Training Attendance", attendance_name)
+        docstatus = doc.docstatus
+        uploaded_filename = doc.uploaded_filename
+        upload_timestamp = doc.upload_timestamp
+        if doc.unknown_employee_logs:
+            try:
+                import json
+                unknown_employee_logs = json.loads(doc.unknown_employee_logs)
+            except Exception:
+                unknown_employee_logs = []
+        for d in doc.attendance_details:
+            existing_details[d.employee] = {
+                "attendance_status": d.attendance_status,
+                "remarks": d.remarks or ""
+            }
+
     enrollments = frappe.get_all(
         "Training Enrollment",
         filters={"training_session": training_session},
@@ -208,21 +249,108 @@ def fetch_enrollments(training_session):
     )
 
     rows = []
+    # 1. Load enrolled employees
     for enrollment in enrollments:
-        employee_name = frappe.db.get_value(
+        emp = frappe.db.get_value(
             "Employee",
             enrollment.employee,
-            "employee_name"
-        )
+            ["name", "employee_id", "employee_name", "email", "department", "designation", "plant", "location", "reporting_manager", "status"],
+            as_dict=True
+        ) or {}
+        
+        # Look up reporting manager name
+        mgr_name = "-"
+        if emp.get("reporting_manager"):
+            mgr_name = frappe.db.get_value("Employee", emp.reporting_manager, "employee_name") or "-"
+
+        status = "Present"
+        remarks = ""
+
+        if enrollment.employee in existing_details:
+            status = existing_details[enrollment.employee]["attendance_status"]
+            remarks = existing_details[enrollment.employee]["remarks"]
 
         rows.append({
             "employee": enrollment.employee,
-            "employee_name": employee_name,
-            "attendance_status": "Present",
-            "remarks": ""
+            "employee_id": emp.get("employee_id") or "-",
+            "employee_name": emp.get("employee_name") or "-",
+            "email": emp.get("email") or "-",
+            "department": emp.get("department") or "-",
+            "designation": emp.get("designation") or "-",
+            "plant": emp.get("plant") or "-",
+            "location": emp.get("location") or "-",
+            "reporting_manager": emp.get("reporting_manager") or "-",
+            "reporting_manager_name": mgr_name,
+            "status": emp.get("status") or "-",
+            "attendance_status": status,
+            "remarks": remarks,
+            "is_temporary": 0,
+            "temporary_employee_code": ""
         })
 
-    return rows
+    # 2. Add temporary rows from unknown employee logs
+    for log in unknown_employee_logs:
+        rows.append({
+            "employee": "",
+            "employee_name": "N/A",
+            "email": "N/A",
+            "department": "N/A",
+            "designation": "N/A",
+            "plant": "N/A",
+            "location": "N/A",
+            "reporting_manager": "N/A",
+            "reporting_manager_name": "N/A",
+            "status": "N/A",
+            "attendance_status": log.get("attendance_status", "Present"),
+            "remarks": log.get("remarks", ""),
+            "is_temporary": 1,
+            "temporary_employee_code": log.get("employee_code", "")
+        })
+
+    # Fetch training session metadata
+    session_data = frappe.db.get_value(
+        "Training Session",
+        training_session,
+        ["name", "course", "training_name", "trainer", "training_mode", "status", "training_date", "start_time", "duration_hours", "meeting_link", "location"],
+        as_dict=True
+    )
+    session_details = {}
+    if session_data:
+        subcategory = frappe.db.get_value("Training Course", session_data.course, "category")
+        session_data["subcategory"] = subcategory or "-"
+        
+        # Calculate end time
+        end_time = "-"
+        start_formatted = "-"
+        if session_data.start_time and session_data.duration_hours:
+            try:
+                import datetime
+                if isinstance(session_data.start_time, datetime.timedelta):
+                    start_sec = session_data.start_time.total_seconds()
+                    start_dt = datetime.datetime.min + datetime.timedelta(seconds=start_sec)
+                else:
+                    start_dt = datetime.datetime.strptime(str(session_data.start_time), "%H:%M:%S")
+                end_dt = start_dt + datetime.timedelta(hours=float(session_data.duration_hours))
+                end_time = end_dt.strftime("%I:%M %p")
+                start_formatted = start_dt.strftime("%I:%M %p")
+            except Exception:
+                start_formatted = str(session_data.start_time)
+                end_time = "-"
+        else:
+            start_formatted = str(session_data.start_time or "-")
+            
+        session_data["start_time_formatted"] = start_formatted
+        session_data["end_time"] = end_time
+        session_data["venue_or_link"] = session_data.meeting_link if session_data.training_mode == "Online" else session_data.location
+        session_details = session_data
+
+    return {
+        "rows": rows,
+        "docstatus": docstatus,
+        "uploaded_filename": uploaded_filename,
+        "upload_timestamp": upload_timestamp,
+        "session_details": session_details
+    }
 
 
 @frappe.whitelist()
@@ -348,7 +476,7 @@ def import_attendance_csv(session_name, rows, submit=False):
 
 
 @frappe.whitelist()
-def submit_manual_attendance(session_name, attendance_data, submit=False):
+def submit_manual_attendance(session_name, attendance_data, submit=False, uploaded_filename=None, upload_timestamp=None):
     check_portal_permission()
     validate_session_trainer(session_name)
 
@@ -367,12 +495,50 @@ def submit_manual_attendance(session_name, attendance_data, submit=False):
         doc = frappe.new_doc("Training Attendance")
         doc.training_session = session_name
 
+    enrolled_rows = []
+    unknown_rows = []
+
     for r in attendance_data:
+        is_temp = int(r.get("is_temporary") or 0)
+        if is_temp or not r.get("employee"):
+            unknown_rows.append({
+                "employee_code": r.get("temporary_employee_code") or r.get("employee"),
+                "attendance_status": r.get("attendance_status", "Present"),
+                "remarks": r.get("remarks", "")
+            })
+        else:
+            enrolled_rows.append({
+                "employee": r.get("employee"),
+                "attendance_status": r.get("attendance_status", "Present"),
+                "remarks": r.get("remarks", "")
+            })
+
+    # Save enrolled rows in child table
+    for r in enrolled_rows:
+        # Auto-enroll valid employees who are not enrolled
+        enrollment_name = f"{session_name}-{r['employee']}"
+        if not frappe.db.exists("Training Enrollment", enrollment_name):
+            enrollment = frappe.new_doc("Training Enrollment")
+            enrollment.training_session = session_name
+            enrollment.employee = r["employee"]
+            enrollment.completion_status = "Completed" if r["attendance_status"] in ["Present", "Late"] else "Not Completed"
+            enrollment.save(ignore_permissions=True)
+
         doc.append("attendance_details", {
-            "employee": r.get("employee"),
-            "attendance_status": r.get("attendance_status", "Present"),
-            "remarks": r.get("remarks", "")
+            "employee": r["employee"],
+            "attendance_status": r["attendance_status"],
+            "remarks": r["remarks"]
         })
+
+    # Save unknown rows in Long Text JSON field
+    doc.unknown_employee_logs = json.dumps(unknown_rows)
+    
+    # Store metadata
+    doc.marked_by = frappe.session.user
+    if uploaded_filename:
+        doc.uploaded_filename = uploaded_filename
+    if upload_timestamp:
+        doc.upload_timestamp = upload_timestamp
 
     doc.save(ignore_permissions=True)
     if int(submit or 0):
@@ -382,3 +548,53 @@ def submit_manual_attendance(session_name, attendance_data, submit=False):
         "status": "success",
         "message": _("Attendance saved successfully.")
     }
+
+
+@frappe.whitelist()
+def check_employee_codes(codes):
+    import json
+    if isinstance(codes, str):
+        codes = json.loads(codes)
+        
+    results = {}
+    for code in codes:
+        # Check by primary key name first
+        emp = frappe.db.get_value(
+            "Employee",
+            code,
+            ["name", "employee_id", "employee_name", "email", "department", "designation", "plant", "location", "reporting_manager", "status"],
+            as_dict=True
+        )
+        if not emp:
+            # Check by employee_id field
+            emp_name = frappe.db.get_value("Employee", {"employee_id": code}, "name")
+            if emp_name:
+                emp = frappe.db.get_value(
+                    "Employee",
+                    emp_name,
+                    ["name", "employee_id", "employee_name", "email", "department", "designation", "plant", "location", "reporting_manager", "status"],
+                    as_dict=True
+                )
+        if emp:
+            mgr_name = "-"
+            if emp.get("reporting_manager"):
+                mgr_name = frappe.db.get_value("Employee", emp.reporting_manager, "employee_name") or "-"
+            
+            results[code] = {
+                "exists": True,
+                "employee": emp.name,
+                "employee_name": emp.employee_name or "-",
+                "email": emp.email or "-",
+                "department": emp.department or "-",
+                "designation": emp.designation or "-",
+                "plant": emp.plant or "-",
+                "location": emp.location or "-",
+                "reporting_manager": emp.reporting_manager or "-",
+                "reporting_manager_name": mgr_name,
+                "status": emp.status or "-"
+            }
+        else:
+            results[code] = {
+                "exists": False
+            }
+    return results
