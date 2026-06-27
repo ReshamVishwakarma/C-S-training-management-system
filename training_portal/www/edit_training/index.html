@@ -3,16 +3,6 @@
 {% block content_area %}
 <style>
     /* Shared CSS style definitions */
-    /* Override Frappe default container width constraints to allow full-width layout */
-    .container, .page-container, .main-container, .page_content {
-        max-width: 100% !important;
-        width: 100% !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
-
     .workspace-container {
         display: grid;
         grid-template-columns: 1fr;
@@ -22,7 +12,7 @@
 
     @media (min-width: 992px) {
         .workspace-container {
-            grid-template-columns: 35% 1fr;
+            grid-template-columns: minmax(400px, 430px) 1fr;
         }
     }
 
@@ -40,6 +30,7 @@
     }
 
     .form-control, .form-select {
+        width: 100%;
         padding: 10px 14px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
