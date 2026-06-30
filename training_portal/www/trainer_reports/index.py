@@ -25,6 +25,11 @@ def get_context(context):
     else:
         context.departments = frappe.get_all("Department", fields=["name"])
 
+    # Fetch plants for filters
+    context.plants = sorted(list(set(
+        p.plant for p in frappe.get_all("Employee", fields=["plant"]) if p.plant
+    )))
+
     # Fetch trainers for filters
     trainer = frappe.db.get_value(
         "Trainer",
@@ -39,11 +44,36 @@ def get_context(context):
     else:
         context.trainers = [{"name": trainer.name, "trainer_name": trainer.trainer_name}] if trainer else []
 
+    # Fetch employees for filters (restrict to trainer's department if restricted)
+    emp_filters = {"status": "Active"}
+    if trainer_dept:
+        emp_filters["department"] = trainer_dept
+    context.employees = frappe.get_all(
+        "Employee",
+        filters=emp_filters,
+        fields=["name", "employee_id", "employee_name"],
+        order_by="employee_name ASC"
+    )
+
+    # Fetch training names/courses for filters
+    course_filters = {"active": 1}
+    if trainer_dept:
+        course_filters["department"] = trainer_dept
+    context.courses = frappe.get_all(
+        "Training Course",
+        filters=course_filters,
+        fields=["name", "course_name"],
+        order_by="course_name ASC"
+    )
+
+    # Fetch categories (Training Subcategory) for Report 2 specific filter
+    context.categories = frappe.get_all("Training Subcategory", fields=["name"], order_by="name ASC")
+
     return context
 
 
 @frappe.whitelist()
-def get_reports_data(report_type, department=None, trainer=None, start_date=None, end_date=None):
+def get_reports_data(report_type, start_date=None, end_date=None, department=None, plant=None, trainer=None, employee=None, training_name=None, attendance_status=None, training_mode=None, category=None):
     check_portal_permission()
 
     roles = frappe.get_roles()
@@ -58,210 +88,311 @@ def get_reports_data(report_type, department=None, trainer=None, start_date=None
     if not is_admin:
         trainer_name = frappe.db.get_value("Trainer", {"user": trainer_user})
         trainer = trainer_name
-    
-    if report_type == "session":
-        return get_session_report(department, trainer, start_date, end_date)
-    elif report_type == "employee":
-        return get_employee_report(department, trainer, start_date, end_date)
-    elif report_type == "department":
-        return get_department_report(department, trainer, start_date, end_date)
-    elif report_type == "trainer":
-        return get_trainer_report(department, trainer, start_date, end_date)
+
+    if report_type == "employee_monthly":
+        return get_employee_monthly_report(start_date, end_date, department, plant, trainer, employee, training_name)
+    elif report_type == "detailed_attendance":
+        return get_detailed_attendance_report(start_date, end_date, department, plant, trainer, employee, training_name, attendance_status, training_mode, category)
+    elif report_type == "training_summary":
+        return get_training_summary_report(start_date, end_date, department, plant, trainer, employee, training_name)
     else:
-        return []
+        return {"report_data": [], "kpis": {}}
 
 
-def get_session_report(department, trainer, start_date, end_date):
-    filters = {}
-    if trainer:
-        filters["trainer"] = trainer
+def get_employee_monthly_report(start_date, end_date, department, plant, trainer, employee, training_name):
+    conditions = []
+    params = {}
+
+    if start_date:
+        conditions.append("sess.training_date >= %(start_date)s")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("sess.training_date <= %(end_date)s")
+        params["end_date"] = end_date
     if department:
-        filters["department"] = department
-    if start_date and end_date:
-        filters["training_date"] = ["between", [start_date, end_date]]
-    elif start_date:
-        filters["training_date"] = [">=", start_date]
-    elif end_date:
-        filters["training_date"] = ["<=", end_date]
-
-    sessions = frappe.get_all(
-        "Training Session",
-        filters=filters,
-        fields=["name", "training_name", "trainer", "department", "training_date", "attendance_percentage", "status"]
-    )
-
-    data = []
-    for s in sessions:
-        attn = frappe.db.get_value("Training Attendance", {"training_session": s.name, "docstatus": 1}, ["total_participants", "present_count"], as_dict=True)
-        data.append({
-            "session_id": s.name,
-            "session_name": s.training_name,
-            "trainer": s.trainer,
-            "department": s.department or "All",
-            "date": str(s.training_date),
-            "participants": attn.total_participants if attn else 0,
-            "present": attn.present_count if attn else 0,
-            "rate": round(s.attendance_percentage or 0, 1),
-            "status": s.status
-        })
-    return data
-
-
-def get_employee_report(department, trainer, start_date, end_date):
-    session_filters = {}
+        conditions.append("emp.department = %(department)s")
+        params["department"] = department
+    if plant:
+        conditions.append("emp.plant = %(plant)s")
+        params["plant"] = plant
     if trainer:
-        session_filters["trainer"] = trainer
-    if start_date and end_date:
-        session_filters["training_date"] = ["between", [start_date, end_date]]
-    elif start_date:
-        session_filters["training_date"] = [">=", start_date]
-    elif end_date:
-        session_filters["training_date"] = ["<=", end_date]
+        conditions.append("sess.trainer = %(trainer)s")
+        params["trainer"] = trainer
+    if employee:
+        conditions.append("(emp.name = %(employee)s OR emp.employee_id = %(employee)s)")
+        params["employee"] = employee
+    if training_name:
+        conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
+        params["training_name"] = training_name
 
-    trainer_dept = get_trainer_department()
-    if trainer_dept:
-        session_filters["department"] = trainer_dept
+    where_clause = ""
+    if conditions:
+        where_clause = "AND " + " AND ".join(conditions)
 
-    session_names = [s.name for s in frappe.get_all("Training Session", filters=session_filters)]
-    if not session_names:
-        return []
+    query = f"""
+        SELECT
+            emp.employee_id AS employee_code,
+            emp.employee_name,
+            emp.department,
+            emp.designation,
+            emp.plant,
+            emp.reporting_manager,
+            COUNT(DISTINCT sess.name) AS trainings_attended,
+            SUM(sess.duration_hours) AS total_hours
+        FROM
+            `tabAttendance Detail` det
+        INNER JOIN
+            `tabTraining Attendance` att ON det.parent = att.name
+        INNER JOIN
+            `tabTraining Session` sess ON att.training_session = sess.name
+        INNER JOIN
+            `tabEmployee` emp ON det.employee = emp.name
+        WHERE
+            att.docstatus = 1
+            AND det.attendance_status = 'Present'
+            {where_clause}
+        GROUP BY
+            emp.name
+        ORDER BY
+            emp.employee_name ASC
+    """
+    results = frappe.db.sql(query, params, as_dict=True)
 
-    enroll_filters = {"training_session": ["in", session_names]}
-    # If the user is an admin or if department filter was explicitly passed
-    if department and not trainer_dept:
-        enroll_filters["department"] = department
+    # Calculate KPIs
+    employees_trained = len(results)
+    total_hours = sum(r.get("total_hours") or 0 for r in results)
+    avg_hours = round(total_hours / employees_trained, 2) if employees_trained > 0 else 0.0
 
-    enrollments = frappe.get_all(
-        "Training Enrollment",
-        filters=enroll_filters,
-        fields=["employee", "completion_status", "department"]
-    )
-
-    emp_data = {}
-    for e in enrollments:
-        emp_id = e.employee
-        if emp_id not in emp_data:
-            emp_data[emp_id] = {"enrolled": 0, "attended": 0}
-        emp_data[emp_id]["enrolled"] += 1
-        if e.completion_status == "Completed":
-            emp_data[emp_id]["attended"] += 1
-
-    data = []
-    for emp_id, stats in emp_data.items():
-        emp_info = frappe.db.get_value("Employee", emp_id, ["employee_name", "department", "designation"])
-        if not emp_info:
-            continue
-        emp_name, dept, designation = emp_info
-        rate = (stats["attended"] / stats["enrolled"] * 100) if stats["enrolled"] > 0 else 0
-        data.append({
-            "employee_id": emp_id,
-            "employee_name": emp_name,
-            "department": dept or "No Department",
-            "designation": designation or "No Designation",
-            "enrolled": stats["enrolled"],
-            "attended": stats["attended"],
-            "rate": round(rate, 1)
-        })
-    return data
-
-
-def get_department_report(department, trainer, start_date, end_date):
-    session_filters = {}
-    if trainer:
-        session_filters["trainer"] = trainer
-    if start_date and end_date:
-        session_filters["training_date"] = ["between", [start_date, end_date]]
-    elif start_date:
-        session_filters["training_date"] = [">=", start_date]
-    elif end_date:
-        session_filters["training_date"] = ["<=", end_date]
-
-    trainer_dept = get_trainer_department()
-    if trainer_dept:
-        session_filters["department"] = trainer_dept
-
-    session_names = [s.name for s in frappe.get_all("Training Session", filters=session_filters)]
-    if not session_names:
-        return []
-
-    enroll_filters = {"training_session": ["in", session_names]}
-    if department and not trainer_dept:
-        enroll_filters["department"] = department
-
-    enrollments = frappe.get_all(
-        "Training Enrollment",
-        filters=enroll_filters,
-        fields=["department", "completion_status"]
-    )
-
-    dept_data = {}
-    for e in enrollments:
-        dept = e.department or "No Department"
-        if dept not in dept_data:
-            dept_data[dept] = {"enrolled": 0, "attended": 0}
-        dept_data[dept]["enrolled"] += 1
-        if e.completion_status == "Completed":
-            dept_data[dept]["attended"] += 1
-
-    data = []
-    for d_name, stats in dept_data.items():
-        rate = (stats["attended"] / stats["enrolled"] * 100) if stats["enrolled"] > 0 else 0
-        data.append({
-            "department": d_name,
-            "enrolled": stats["enrolled"],
-            "attended": stats["attended"],
-            "rate": round(rate, 1)
-        })
-    return data
-
-
-def get_trainer_report(department, trainer, start_date, end_date):
-    trainer_filters = {}
-    if trainer:
-        trainer_filters["name"] = trainer
+    # Unique enrolled employees query
+    enrolled_conditions = []
+    enrolled_params = {}
+    if start_date:
+        enrolled_conditions.append("sess.training_date >= %(start_date)s")
+        enrolled_params["start_date"] = start_date
+    if end_date:
+        enrolled_conditions.append("sess.training_date <= %(end_date)s")
+        enrolled_params["end_date"] = end_date
     if department:
-        trainer_filters["department"] = department
+        enrolled_conditions.append("emp.department = %(department)s")
+        enrolled_params["department"] = department
+    if plant:
+        enrolled_conditions.append("emp.plant = %(plant)s")
+        enrolled_params["plant"] = plant
+    if trainer:
+        enrolled_conditions.append("sess.trainer = %(trainer)s")
+        enrolled_params["trainer"] = trainer
+    if employee:
+        enrolled_conditions.append("(emp.name = %(employee)s OR emp.employee_id = %(employee)s)")
+        enrolled_params["employee"] = employee
+    if training_name:
+        enrolled_conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
+        enrolled_params["training_name"] = training_name
 
-    trainer_dept = get_trainer_department()
-    if trainer_dept:
-        trainer_filters["department"] = trainer_dept
+    enrolled_where = ""
+    if enrolled_conditions:
+        enrolled_where = "WHERE " + " AND ".join(enrolled_conditions)
 
-    trainers = frappe.get_all("Trainer", filters=trainer_filters, fields=["name", "trainer_name", "department", "attendance_percentage"])
+    enrolled_query = f"""
+        SELECT COUNT(DISTINCT enroll.employee)
+        FROM `tabTraining Enrollment` enroll
+        INNER JOIN `tabTraining Session` sess ON enroll.training_session = sess.name
+        INNER JOIN `tabEmployee` emp ON enroll.employee = emp.name
+        {enrolled_where}
+    """
+    unique_employees = frappe.db.sql(enrolled_query, enrolled_params)[0][0] or 0
 
-    data = []
-    for t in trainers:
-        session_filters = {"trainer": t.name, "status": ["!=", "Cancelled"]}
-        if start_date and end_date:
-            session_filters["training_date"] = ["between", [start_date, end_date]]
-        elif start_date:
-            session_filters["training_date"] = [">=", start_date]
-        elif end_date:
-            session_filters["training_date"] = ["<=", end_date]
+    return {
+        "report_data": results,
+        "kpis": {
+            "employees_trained": employees_trained,
+            "total_hours": round(total_hours, 1),
+            "avg_hours": avg_hours,
+            "unique_employees": unique_employees
+        }
+    }
 
-        sessions = frappe.get_all("Training Session", filters=session_filters, fields=["name"])
-        session_names = [s.name for s in sessions]
 
-        total_participants = 0
-        total_present = 0
+def get_detailed_attendance_report(start_date, end_date, department, plant, trainer, employee, training_name, attendance_status, training_mode, category):
+    conditions = []
+    params = {}
 
-        if session_names:
-            attendances = frappe.get_all(
-                "Training Attendance",
-                filters={"training_session": ["in", session_names], "docstatus": 1},
-                fields=["total_participants", "present_count"]
+    if start_date:
+        conditions.append("sess.training_date >= %(start_date)s")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("sess.training_date <= %(end_date)s")
+        params["end_date"] = end_date
+    if department:
+        conditions.append("emp.department = %(department)s")
+        params["department"] = department
+    if plant:
+        conditions.append("emp.plant = %(plant)s")
+        params["plant"] = plant
+    if trainer:
+        conditions.append("sess.trainer = %(trainer)s")
+        params["trainer"] = trainer
+    if employee:
+        conditions.append("(emp.name = %(employee)s OR emp.employee_id = %(employee)s)")
+        params["employee"] = employee
+    if training_name:
+        conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
+        params["training_name"] = training_name
+    if attendance_status:
+        conditions.append("det.attendance_status = %(attendance_status)s")
+        params["attendance_status"] = attendance_status
+    if training_mode:
+        conditions.append("sess.training_mode = %(training_mode)s")
+        params["training_mode"] = training_mode
+    if category:
+        conditions.append("course.category = %(category)s")
+        params["category"] = category
+
+    where_clause = ""
+    if conditions:
+        where_clause = "AND " + " AND ".join(conditions)
+
+    query = f"""
+        SELECT
+            sess.name AS session_id,
+            emp.employee_id AS employee_code,
+            emp.employee_name,
+            emp.email,
+            emp.department,
+            emp.designation,
+            emp.plant,
+            emp.location,
+            emp.reporting_manager,
+            sess.training_name,
+            course.category AS training_category,
+            sess.training_date,
+            sess.duration_hours AS duration,
+            sess.trainer,
+            sess.training_mode,
+            det.attendance_status,
+            det.remarks
+        FROM
+            `tabAttendance Detail` det
+        INNER JOIN
+            `tabTraining Attendance` att ON det.parent = att.name
+        INNER JOIN
+            `tabTraining Session` sess ON att.training_session = sess.name
+        INNER JOIN
+            `tabEmployee` emp ON det.employee = emp.name
+        INNER JOIN
+            `tabTraining Course` course ON sess.course = course.name
+        WHERE
+            att.docstatus = 1
+            {where_clause}
+        ORDER BY
+            sess.training_date DESC, emp.employee_name ASC
+    """
+    results = frappe.db.sql(query, params, as_dict=True)
+    return {
+        "report_data": results,
+        "kpis": {}
+    }
+
+
+def get_training_summary_report(start_date, end_date, department, plant, trainer, employee, training_name):
+    conditions = []
+    params = {}
+
+    if start_date:
+        conditions.append("sess.training_date >= %(start_date)s")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("sess.training_date <= %(end_date)s")
+        params["end_date"] = end_date
+    if trainer:
+        conditions.append("sess.trainer = %(trainer)s")
+        params["trainer"] = trainer
+    if training_name:
+        conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
+        params["training_name"] = training_name
+
+    # Filter based on employee links if department/plant/employee filters exist
+    if department or plant or employee:
+        conditions.append("""
+            EXISTS (
+                SELECT 1 
+                FROM `tabAttendance Detail` d2 
+                INNER JOIN `tabTraining Attendance` a2 ON d2.parent = a2.name 
+                INNER JOIN `tabEmployee` e2 ON d2.employee = e2.name
+                WHERE a2.training_session = sess.name 
+                  AND a2.docstatus = 1
+                  AND d2.attendance_status = 'Present'
+                  """ + 
+                  (" AND e2.department = %(department)s" if department else "") +
+                  (" AND e2.plant = %(plant)s" if plant else "") +
+                  (" AND (e2.name = %(employee)s OR e2.employee_id = %(employee)s)" if employee else "") +
+                  ")"
+        )
+        if department:
+            params["department"] = department
+        if plant:
+            params["plant"] = plant
+        if employee:
+            params["employee"] = employee
+
+    where_clause = ""
+    if conditions:
+        where_clause = "AND " + " AND ".join(conditions)
+
+    query = f"""
+        SELECT
+            sess.training_name,
+            course.category AS training_category,
+            COUNT(DISTINCT sess.name) AS sessions_conducted,
+            AVG(sess.duration_hours) AS average_duration,
+            ROUND(AVG(
+                (SELECT COUNT(*) 
+                 FROM `tabAttendance Detail` det 
+                 INNER JOIN `tabTraining Attendance` att2 ON det.parent = att2.name
+                 WHERE att2.training_session = sess.name 
+                   AND att2.docstatus = 1 
+                   AND det.attendance_status = 'Present')
+            ), 1) AS employees_attended,
+            SUM(
+                sess.duration_hours * 
+                (SELECT COUNT(*) 
+                 FROM `tabAttendance Detail` det 
+                 INNER JOIN `tabTraining Attendance` att2 ON det.parent = att2.name
+                 WHERE att2.training_session = sess.name 
+                   AND att2.docstatus = 1 
+                   AND det.attendance_status = 'Present')
+            ) AS total_training_hours,
+            AVG(sess.attendance_percentage) AS average_attendance
+        FROM
+            `tabTraining Session` sess
+        INNER JOIN
+            `tabTraining Course` course ON sess.course = course.name
+        WHERE
+            sess.status != 'Cancelled'
+            AND EXISTS (
+                SELECT 1 FROM `tabTraining Attendance` att
+                WHERE att.training_session = sess.name AND att.docstatus = 1
             )
-            total_participants = sum(a.total_participants or 0 for a in attendances)
-            total_present = sum(a.present_count or 0 for a in attendances)
+            {where_clause}
+        GROUP BY
+            sess.course
+        ORDER BY
+            sess.training_name ASC
+    """
+    results = frappe.db.sql(query, params, as_dict=True)
 
-        rate = (total_present / total_participants * 100) if total_participants > 0 else (t.attendance_percentage or 0)
+    # Calculate KPIs
+    unique_trainings = len(results)
+    sessions_conducted = sum(r.get("sessions_conducted") or 0 for r in results)
+    employees_trained = sum(r.get("employees_attended") or 0 for r in results)
+    total_hours_delivered = sum(r.get("total_training_hours") or 0 for r in results)
 
-        data.append({
-            "trainer_id": t.name,
-            "trainer_name": t.trainer_name,
-            "department": t.department,
-            "sessions_count": len(session_names),
-            "participants": total_participants,
-            "present": total_present,
-            "rate": round(rate, 1)
-        })
-    return data
+    return {
+        "report_data": results,
+        "kpis": {
+            "unique_trainings": unique_trainings,
+            "sessions_conducted": sessions_conducted,
+            "employees_trained": employees_trained,
+            "total_hours_delivered": round(total_hours_delivered, 1)
+        }
+    }
+
