@@ -2,8 +2,10 @@ import frappe
 
 def get_context(context):
 
-    if "HR Administrator" not in frappe.get_roles():
-        frappe.throw("Not Permitted")
+    roles = frappe.get_roles()
+    is_admin = any(r in roles for r in ["System Manager", "HR Admin", "Training Admin", "HR Manager", "HR User", "HR Administrator"])
+    if not is_admin:
+        frappe.throw("Not Permitted", frappe.PermissionError)
         
     context.user = frappe.session.user
 

@@ -73,33 +73,38 @@ def get_context(context):
 
 
 @frappe.whitelist()
-def get_reports_data(report_type, start_date=None, end_date=None, department=None, plant=None, trainer=None, employee=None, training_name=None, attendance_status=None, training_mode=None, category=None):
+def get_reports_data(report_type, start_date=None, end_date=None, department=None, plant=None, trainer=None, employee=None, training_name=None, attendance_status=None, training_mode=None, category=None, is_hr=False):
     check_portal_permission()
 
     roles = frappe.get_roles()
     is_admin = any(r in roles for r in ["System Manager", "HR Admin", "Training Admin", "HR Manager", "HR User"])
+    
+    if int(is_hr or 0) and not is_admin:
+        frappe.throw(_("Not permitted to view HR reports."), frappe.PermissionError)
+
     trainer_user = frappe.session.user
 
-    trainer_dept = get_trainer_department()
-    if trainer_dept:
-        # Trainers are forced to only see their department
-        department = trainer_dept
+    # Only apply trainer restrictions if NOT HR reports
+    if not int(is_hr or 0):
+        trainer_dept = get_trainer_department()
+        if trainer_dept:
+            department = trainer_dept
 
-    if not is_admin:
-        trainer_name = frappe.db.get_value("Trainer", {"user": trainer_user})
-        trainer = trainer_name
+        if not is_admin:
+            trainer_name = frappe.db.get_value("Trainer", {"user": trainer_user})
+            trainer = trainer_name
 
     if report_type == "employee_monthly":
-        return get_employee_monthly_report(start_date, end_date, department, plant, trainer, employee, training_name)
+        return get_employee_monthly_report(start_date, end_date, department, plant, trainer, employee, training_name, category)
     elif report_type == "detailed_attendance":
         return get_detailed_attendance_report(start_date, end_date, department, plant, trainer, employee, training_name, attendance_status, training_mode, category)
     elif report_type == "training_summary":
-        return get_training_summary_report(start_date, end_date, department, plant, trainer, employee, training_name)
+        return get_training_summary_report(start_date, end_date, department, plant, trainer, employee, training_name, category)
     else:
         return {"report_data": [], "kpis": {}}
 
 
-def get_employee_monthly_report(start_date, end_date, department, plant, trainer, employee, training_name):
+def get_employee_monthly_report(start_date, end_date, department, plant, trainer, employee, training_name, category=None):
     conditions = []
     params = {}
 
@@ -109,9 +114,15 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
     if end_date:
         conditions.append("sess.training_date <= %(end_date)s")
         params["end_date"] = end_date
+    if training_name:
+        conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
+        params["training_name"] = training_name
     if department:
         conditions.append("emp.department = %(department)s")
         params["department"] = department
+    if category:
+        conditions.append("course.category = %(category)s")
+        params["category"] = category
     if plant:
         conditions.append("emp.plant = %(plant)s")
         params["plant"] = plant
@@ -121,9 +132,6 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
     if employee:
         conditions.append("(emp.name = %(employee)s OR emp.employee_id = %(employee)s)")
         params["employee"] = employee
-    if training_name:
-        conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
-        params["training_name"] = training_name
 
     where_clause = ""
     if conditions:
@@ -133,10 +141,6 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
         SELECT
             emp.employee_id AS employee_code,
             emp.employee_name,
-            emp.department,
-            emp.designation,
-            emp.plant,
-            emp.reporting_manager,
             COUNT(DISTINCT sess.name) AS trainings_attended,
             SUM(sess.duration_hours) AS total_hours
         FROM
@@ -147,6 +151,8 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
             `tabTraining Session` sess ON att.training_session = sess.name
         INNER JOIN
             `tabEmployee` emp ON det.employee = emp.name
+        INNER JOIN
+            `tabTraining Course` course ON sess.course = course.name
         WHERE
             att.docstatus = 1
             AND det.attendance_status = 'Present'
@@ -172,9 +178,15 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
     if end_date:
         enrolled_conditions.append("sess.training_date <= %(end_date)s")
         enrolled_params["end_date"] = end_date
+    if training_name:
+        enrolled_conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
+        enrolled_params["training_name"] = training_name
     if department:
         enrolled_conditions.append("emp.department = %(department)s")
         enrolled_params["department"] = department
+    if category:
+        enrolled_conditions.append("course.category = %(category)s")
+        enrolled_params["category"] = category
     if plant:
         enrolled_conditions.append("emp.plant = %(plant)s")
         enrolled_params["plant"] = plant
@@ -184,19 +196,24 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
     if employee:
         enrolled_conditions.append("(emp.name = %(employee)s OR emp.employee_id = %(employee)s)")
         enrolled_params["employee"] = employee
-    if training_name:
-        enrolled_conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
-        enrolled_params["training_name"] = training_name
 
     enrolled_where = ""
     if enrolled_conditions:
         enrolled_where = "WHERE " + " AND ".join(enrolled_conditions)
 
+    joins = []
+    if department or plant or employee:
+        joins.append("INNER JOIN `tabEmployee` emp ON enroll.employee = emp.name")
+    if category:
+        joins.append("INNER JOIN `tabTraining Course` course ON sess.course = course.name")
+
+    joins_str = " ".join(joins)
+
     enrolled_query = f"""
         SELECT COUNT(DISTINCT enroll.employee)
         FROM `tabTraining Enrollment` enroll
         INNER JOIN `tabTraining Session` sess ON enroll.training_session = sess.name
-        INNER JOIN `tabEmployee` emp ON enroll.employee = emp.name
+        {joins_str}
         {enrolled_where}
     """
     unique_employees = frappe.db.sql(enrolled_query, enrolled_params)[0][0] or 0
@@ -293,7 +310,7 @@ def get_detailed_attendance_report(start_date, end_date, department, plant, trai
     }
 
 
-def get_training_summary_report(start_date, end_date, department, plant, trainer, employee, training_name):
+def get_training_summary_report(start_date, end_date, department, plant, trainer, employee, training_name, category=None):
     conditions = []
     params = {}
 
@@ -309,6 +326,9 @@ def get_training_summary_report(start_date, end_date, department, plant, trainer
     if training_name:
         conditions.append("(sess.training_name = %(training_name)s OR sess.course = %(training_name)s)")
         params["training_name"] = training_name
+    if category:
+        conditions.append("course.category = %(category)s")
+        params["category"] = category
 
     # Filter based on employee links if department/plant/employee filters exist
     if department or plant or employee:
