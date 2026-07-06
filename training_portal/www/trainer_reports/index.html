@@ -448,6 +448,26 @@
         sortKey = '';
         sortAsc = true;
 
+        // Toggle Report 1 filters (hide Department, Plant, Trainer, Employee for employee_monthly)
+        const filtersToToggle = [
+            document.getElementById('filter-department'),
+            document.getElementById('filter-plant'),
+            document.getElementById('filter-trainer'),
+            document.getElementById('filter-employee')
+        ];
+        if (reportType === 'employee_monthly') {
+            filtersToToggle.forEach(el => {
+                if (el) {
+                    el.parentElement.style.display = 'none';
+                    el.value = '';
+                }
+            });
+        } else {
+            filtersToToggle.forEach(el => {
+                if (el) el.parentElement.style.display = 'block';
+            });
+        }
+
         // Toggle Report 2 specific filters
         if (reportType === 'detailed_attendance') {
             document.querySelectorAll('.report2-filter').forEach(el => el.style.display = 'block');
@@ -657,10 +677,6 @@
                 <tr>
                     <th onclick="sortReport('employee_code')">Employee Code ${getSortIndicator('employee_code')}</th>
                     <th onclick="sortReport('employee_name')">Employee Name ${getSortIndicator('employee_name')}</th>
-                    <th onclick="sortReport('department')">Department ${getSortIndicator('department')}</th>
-                    <th onclick="sortReport('designation')">Designation ${getSortIndicator('designation')}</th>
-                    <th onclick="sortReport('plant')">Plant ${getSortIndicator('plant')}</th>
-                    <th onclick="sortReport('reporting_manager')">Reporting Manager ${getSortIndicator('reporting_manager')}</th>
                     <th onclick="sortReport('trainings_attended')">Trainings Attended ${getSortIndicator('trainings_attended')}</th>
                     <th onclick="sortReport('total_hours')">Total Training Hours ${getSortIndicator('total_hours')}</th>
                 </tr>
@@ -670,10 +686,6 @@
                 tr.innerHTML = `
                     <td style="font-weight: 700; color: var(--accent);">${row.employee_code || '-'}</td>
                     <td style="font-weight: 600;">${row.employee_name || '-'}</td>
-                    <td>${row.department || '-'}</td>
-                    <td>${row.designation || '-'}</td>
-                    <td>${row.plant || '-'}</td>
-                    <td>${row.reporting_manager || '-'}</td>
                     <td style="font-weight: 600; text-align: center;">${row.trainings_attended || 0}</td>
                     <td class="text-success" style="font-weight: 700;">${parseFloat(row.total_hours || 0).toFixed(1)} hrs</td>
                 `;
@@ -788,8 +800,8 @@
         const endDate = document.getElementById('filter-end-date').value || "end";
 
         if (activeReport === 'employee_monthly') {
-            headers = ["Employee Code", "Employee Name", "Department", "Designation", "Plant", "Reporting Manager", "Trainings Attended", "Total Training Hours"];
-            keys = ["employee_code", "employee_name", "department", "designation", "plant", "reporting_manager", "trainings_attended", "total_hours"];
+            headers = ["Employee Code", "Employee Name", "Trainings Attended", "Total Training Hours"];
+            keys = ["employee_code", "employee_name", "trainings_attended", "total_hours"];
             filename = `Monthly_Employee_Report_${startDate}_to_${endDate}.xlsx`;
         } else if (activeReport === 'detailed_attendance') {
             headers = ["Session ID", "Employee Code", "Employee Name", "Email", "Department", "Designation", "Plant", "Location", "Reporting Manager", "Training Name", "Training Category", "Training Date", "Duration", "Trainer", "Training Mode", "Attendance Status", "Remarks"];
@@ -842,8 +854,8 @@
         const endDate = document.getElementById('filter-end-date').value || "end";
 
         if (activeReport === 'employee_monthly') {
-            headers = ["Employee Code", "Employee Name", "Department", "Designation", "Plant", "Reporting Manager", "Trainings Attended", "Total Training Hours"];
-            keys = ["employee_code", "employee_name", "department", "designation", "plant", "reporting_manager", "trainings_attended", "total_hours"];
+            headers = ["Employee Code", "Employee Name", "Trainings Attended", "Total Training Hours"];
+            keys = ["employee_code", "employee_name", "trainings_attended", "total_hours"];
             filename = `Monthly_Employee_Report_${startDate}_to_${endDate}.csv`;
         } else if (activeReport === 'detailed_attendance') {
             headers = ["Session ID", "Employee Code", "Employee Name", "Email", "Department", "Designation", "Plant", "Location", "Reporting Manager", "Training Name", "Training Category", "Training Date", "Duration", "Trainer", "Training Mode", "Attendance Status", "Remarks"];

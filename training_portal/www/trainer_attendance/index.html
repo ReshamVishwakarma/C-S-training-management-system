@@ -572,7 +572,7 @@
     let currentDocstatus = 0;
     let uploadedFilename = null;
     let uploadTimestamp = null;
-    const sessionName = "{{ session_id or '' }}";
+    const sessionName = "{{ frappe.form_dict.session or '' }}";
 
     // Setup drag and drop for Workspace view
     document.addEventListener("DOMContentLoaded", () => {

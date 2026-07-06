@@ -140,7 +140,7 @@ def get_employee_monthly_report(start_date, end_date, department, plant, trainer
             COUNT(DISTINCT sess.name) AS trainings_attended,
             SUM(sess.duration_hours) AS total_hours
         FROM
-            `tabAttendance Detail` det
+            `tabAttendance detail` det
         INNER JOIN
             `tabTraining Attendance` att ON det.parent = att.name
         INNER JOIN
@@ -271,7 +271,7 @@ def get_detailed_attendance_report(start_date, end_date, department, plant, trai
             det.attendance_status,
             det.remarks
         FROM
-            `tabAttendance Detail` det
+            `tabAttendance detail` det
         INNER JOIN
             `tabTraining Attendance` att ON det.parent = att.name
         INNER JOIN
@@ -315,8 +315,8 @@ def get_training_summary_report(start_date, end_date, department, plant, trainer
         conditions.append("""
             EXISTS (
                 SELECT 1 
-                FROM `tabAttendance Detail` d2 
-                INNER JOIN `tabTraining Attendance` a2 ON d2.parent = a2.name 
+                FROM `tabAttendance detail` d2 
+                 INNER JOIN `tabTraining Attendance` a2 ON d2.parent = a2.name 
                 INNER JOIN `tabEmployee` e2 ON d2.employee = e2.name
                 WHERE a2.training_session = sess.name 
                   AND a2.docstatus = 1
@@ -346,7 +346,7 @@ def get_training_summary_report(start_date, end_date, department, plant, trainer
             AVG(sess.duration_hours) AS average_duration,
             ROUND(AVG(
                 (SELECT COUNT(*) 
-                 FROM `tabAttendance Detail` det 
+                 FROM `tabAttendance detail` det 
                  INNER JOIN `tabTraining Attendance` att2 ON det.parent = att2.name
                  WHERE att2.training_session = sess.name 
                    AND att2.docstatus = 1 
@@ -354,9 +354,8 @@ def get_training_summary_report(start_date, end_date, department, plant, trainer
             ), 1) AS employees_attended,
             SUM(
                 sess.duration_hours * 
-                (SELECT COUNT(*) 
-                 FROM `tabAttendance Detail` det 
-                 INNER JOIN `tabTraining Attendance` att2 ON det.parent = att2.name
+                (SELECT COUNT(*)                  FROM `tabAttendance detail` det 
+                  INNER JOIN `tabTraining Attendance` att2 ON det.parent = att2.name
                  WHERE att2.training_session = sess.name 
                    AND att2.docstatus = 1 
                    AND det.attendance_status = 'Present')

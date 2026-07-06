@@ -12,7 +12,20 @@ def get_trainer_department():
 
     if "Trainer" in roles:
         trainer_user = frappe.session.user
-        trainer_dept = frappe.db.get_value("Trainer", {"user": trainer_user}, "department")
+        trainer_name = frappe.db.get_value("Trainer", {"user": trainer_user})
+        if not trainer_name:
+            trainer_name = frappe.db.get_value("Trainer", {"email": trainer_user})
+        if not trainer_name and "@" not in trainer_user:
+            user_email = frappe.db.get_value("User", trainer_user, "email")
+            if user_email:
+                trainer_name = frappe.db.get_value("Trainer", {"user": user_email}) or frappe.db.get_value("Trainer", {"email": user_email})
+        if not trainer_name:
+            trainer_name = frappe.db.get_value("Trainer", {"name": trainer_user})
+
+        trainer_dept = None
+        if trainer_name:
+            trainer_dept = frappe.db.get_value("Trainer", trainer_name, "department")
+
         if not trainer_dept:
             frappe.throw(_("Trainer profile not mapped to a department. Contact Administrator."), frappe.PermissionError)
         return trainer_dept

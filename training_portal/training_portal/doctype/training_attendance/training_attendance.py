@@ -191,25 +191,99 @@ def check_portal_permission():
 
 def validate_session_trainer(session_name):
     roles = frappe.get_roles()
+    
+    # Gather debug info
+    debug_info = {}
+    debug_info["session_name"] = session_name
+    debug_info["frappe.session.user"] = frappe.session.user
+    debug_info["roles"] = roles
+    debug_info["is_admin_or_manager"] = any(r in roles for r in ["System Manager", "HR Admin", "Training Admin", "HR Manager", "HR User"])
+    
+    from training_portal.training_portal.access_control import get_trainer_department
+    try:
+        trainer_dept = get_trainer_department()
+        debug_info["get_trainer_department_result"] = trainer_dept
+    except Exception as e:
+        debug_info["get_trainer_department_error"] = str(e)
+        trainer_dept = None
+        
+    session_course = frappe.db.get_value("Training Session", session_name, "course")
+    debug_info["session_course"] = session_course
+    if session_course:
+        course_dept = frappe.db.get_value("Training Course", session_course, "department")
+        debug_info["course_dept"] = course_dept
+        if trainer_dept and course_dept != trainer_dept:
+            debug_info["department_check_passed"] = False
+        else:
+            debug_info["department_check_passed"] = True
+
+    trainer_user = frappe.session.user
+    trainer_by_user = frappe.db.get_value("Trainer", {"user": trainer_user})
+    trainer_by_email = frappe.db.get_value("Trainer", {"email": trainer_user})
+    
+    user_email = None
+    trainer_by_user_email = None
+    if "@" not in trainer_user:
+        user_email = frappe.db.get_value("User", trainer_user, "email")
+        if user_email:
+            trainer_by_user_email = frappe.db.get_value("Trainer", {"user": user_email}) or frappe.db.get_value("Trainer", {"email": user_email})
+    trainer_by_name = frappe.db.get_value("Trainer", {"name": trainer_user})
+    
+    debug_info["trainer_lookups"] = {
+        "trainer_by_user": trainer_by_user,
+        "trainer_by_email": trainer_by_email,
+        "user_email": user_email,
+        "trainer_by_user_email": trainer_by_user_email,
+        "trainer_by_name": trainer_by_name
+    }
+    
+    trainer_name = trainer_by_user or trainer_by_email or trainer_by_user_email or trainer_by_name
+    debug_info["resolved_trainer_name"] = trainer_name
+    
+    if trainer_name:
+        trainer_doc = frappe.db.get_value("Trainer", trainer_name, ["name", "trainer_name", "user", "email", "department"], as_dict=True)
+        debug_info["resolved_trainer_document"] = trainer_doc
+    else:
+        debug_info["resolved_trainer_document"] = None
+        
+    session_trainer = frappe.db.get_value("Training Session", session_name, "trainer")
+    session_owner = frappe.db.get_value("Training Session", session_name, "owner")
+    debug_info["session_trainer"] = session_trainer
+    debug_info["session_owner"] = session_owner
+    
+    match = False
+    if trainer_name:
+        if session_trainer == trainer_name:
+            match = True
+            debug_info["match_type"] = "exact_match"
+        else:
+            actual_trainer_name = frappe.db.get_value("Trainer", trainer_name, "trainer_name")
+            debug_info["actual_trainer_name_field"] = actual_trainer_name
+            if actual_trainer_name == session_trainer:
+                match = True
+                debug_info["match_type"] = "trainer_name_field_match"
+                
+    debug_info["match_result"] = match
+    
+    # Write debug to log file
+    import json
+    try:
+        with open("/home/resham125/frappe-projects/frappe-bench/logs/permission_debug.json", "w") as f:
+            json.dump(debug_info, f, indent=2)
+    except Exception:
+        pass
+
     # HR/Admin can view/edit everything
     if any(r in roles for r in ["System Manager", "HR Admin", "Training Admin", "HR Manager", "HR User"]):
         return
 
-    from training_portal.training_portal.access_control import get_trainer_department
-    trainer_dept = get_trainer_department()
     if trainer_dept:
-        session_course = frappe.db.get_value("Training Session", session_name, "course")
         if session_course:
             course_dept = frappe.db.get_value("Training Course", session_course, "department")
             if course_dept != trainer_dept:
                 frappe.throw(_("Access Violation: You are not authorized to manage sessions outside your department."), frappe.PermissionError)
 
-    # Trainers can only access their own sessions
-    trainer_user = frappe.session.user
-    trainer_name = frappe.db.get_value("Trainer", {"user": trainer_user})
-    session_trainer = frappe.db.get_value("Training Session", session_name, "trainer")
-
-    if session_trainer != trainer_name:
+    if not match:
         frappe.throw(_("You are not authorized to manage attendance for this session."), frappe.PermissionError)
 
 
@@ -288,7 +362,7 @@ def fetch_enrollments(training_session):
             "temporary_employee_code": ""
         })
 
-    # 2. Add temporary rows from unknown employee logs
+    # 2. Append unknown employee logs
     for log in unknown_employee_logs:
         rows.append({
             "employee": "",
@@ -308,41 +382,54 @@ def fetch_enrollments(training_session):
         })
 
     # Fetch training session metadata
-    session_data = frappe.db.get_value(
-        "Training Session",
-        training_session,
-        ["name", "course", "training_name", "trainer", "training_mode", "status", "training_date", "start_time", "duration_hours", "meeting_link", "location"],
-        as_dict=True
-    )
     session_details = {}
-    if session_data:
-        subcategory = frappe.db.get_value("Training Course", session_data.course, "category")
+    if frappe.db.exists("Training Session", training_session):
+        session_doc = frappe.get_doc("Training Session", training_session)
+        session_data = session_doc.as_dict()
+
+        subcategory = frappe.db.get_value("Training Course", session_data.get("course"), "category")
         session_data["subcategory"] = subcategory or "-"
-        
+
         # Calculate end time
         end_time = "-"
         start_formatted = "-"
-        if session_data.start_time and session_data.duration_hours:
+        start_time = session_data.get("start_time")
+        duration_hours = session_data.get("duration_hours")
+        training_mode = session_data.get("training_mode")
+        meeting_link = session_data.get("meeting_link")
+        location = session_data.get("location")
+
+        if start_time and duration_hours:
             try:
                 import datetime
-                if isinstance(session_data.start_time, datetime.timedelta):
-                    start_sec = session_data.start_time.total_seconds()
+                if isinstance(start_time, datetime.timedelta):
+                    start_sec = start_time.total_seconds()
                     start_dt = datetime.datetime.min + datetime.timedelta(seconds=start_sec)
                 else:
-                    start_dt = datetime.datetime.strptime(str(session_data.start_time), "%H:%M:%S")
-                end_dt = start_dt + datetime.timedelta(hours=float(session_data.duration_hours))
+                    start_dt = datetime.datetime.strptime(str(start_time), "%H:%M:%S")
+                end_dt = start_dt + datetime.timedelta(hours=float(duration_hours))
                 end_time = end_dt.strftime("%I:%M %p")
                 start_formatted = start_dt.strftime("%I:%M %p")
             except Exception:
-                start_formatted = str(session_data.start_time)
+                start_formatted = str(start_time)
                 end_time = "-"
         else:
-            start_formatted = str(session_data.start_time or "-")
-            
+            start_formatted = str(start_time or "-")
+
         session_data["start_time_formatted"] = start_formatted
         session_data["end_time"] = end_time
-        session_data["venue_or_link"] = session_data.meeting_link if session_data.training_mode == "Online" else session_data.location
-        session_details = session_data
+        session_data["venue_or_link"] = meeting_link if training_mode == "Online" else location
+
+        # Convert all values to JSON-serializable formats explicitly to be absolutely safe
+        serialized_details = {}
+        for k, v in session_data.items():
+            if hasattr(v, "strftime"):
+                serialized_details[k] = str(v)
+            elif hasattr(v, "total_seconds"):
+                serialized_details[k] = str(v)
+            else:
+                serialized_details[k] = v
+        session_details = serialized_details
 
     return {
         "rows": rows,
