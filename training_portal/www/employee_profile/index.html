@@ -1,0 +1,179 @@
+{% extends "training_portal/templates/employee_base.html" %}
+
+{% block content_area %}
+<style>
+    .profile-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 40px;
+        margin-bottom: 30px;
+    }
+
+    .profile-hero {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 30px;
+        margin-bottom: 30px;
+    }
+
+    .profile-avatar-large {
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, var(--accent), #60a5fa);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 36px;
+        font-weight: 800;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+    }
+
+    .profile-meta {
+        flex-grow: 1;
+    }
+
+    .profile-name {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0 0 6px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-subtitle {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .info-item {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 16px;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header-widget mb-4">
+    <div class="page-title-group">
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 6px;">My Profile</h1>
+        <p style="color: var(--text-muted); font-size: 15px; margin: 0;">View your employee profile and account information</p>
+    </div>
+</div>
+
+<div class="profile-card">
+    <!-- Profile Hero Info -->
+    <div class="profile-hero">
+        <div class="profile-avatar-large">
+            {{ profile_info.full_name[0] | upper }}
+        </div>
+        <div class="profile-meta">
+            <h2 class="profile-name">{{ profile_info.full_name }}</h2>
+            <p class="profile-subtitle">
+                <span><i class="bi bi-building me-1"></i>{{ profile_info.department or "General L&D" }}</span>
+                <span>•</span>
+                <span><i class="bi bi-award me-1"></i>{{ profile_info.designation or "Trainee" }}</span>
+            </p>
+        </div>
+        <div>
+            {% if profile_info.active %}
+                <span class="badge bg-success-subtle text-success" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-check-circle-fill me-1"></i> Active Employee
+                </span>
+            {% else %}
+                <span class="badge bg-danger-subtle text-danger" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-x-circle-fill me-1"></i> Inactive Status
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Detailed Profile Details -->
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin: 0 0 20px 0;">Employee Information</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Full Name</div>
+            <div class="info-value">{{ profile_info.full_name }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Employee ID</div>
+            <div class="info-value" style="font-weight: 700; color: var(--accent);">{{ profile_info.employee_id }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Email Address</div>
+            <div class="info-value">{{ profile_info.email }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Mobile Number</div>
+            <div class="info-value">{{ profile_info.mobile_no }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Department</div>
+            <div class="info-value">{{ profile_info.department }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Designation</div>
+            <div class="info-value">{{ profile_info.designation }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Plant</div>
+            <div class="info-value">{{ profile_info.plant }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Location</div>
+            <div class="info-value">{{ profile_info.location }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Reporting Manager</div>
+            <div class="info-value">{{ profile_info.reporting_manager }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Employment Type</div>
+            <div class="info-value">{{ profile_info.employment_type }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Date of Joining</div>
+            <div class="info-value">{{ profile_info.date_of_joining or "-" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">System Login User</div>
+            <div class="info-value" style="font-weight: 400; font-size: 14px; color: var(--text-muted);">{{ user }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

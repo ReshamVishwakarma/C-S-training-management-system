@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C&S Electric LMS — Sign In</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f8fafc; 
+            padding: 24px;
+        }
+        .login-card { 
+            max-width: 460px; 
+            width: 100%; 
+            padding: 40px; 
+            border-radius: 16px; 
+            background: white; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+        .logo-img {
+            height: 70px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        .system-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        h2 { 
+            font-size: 24px; 
+            font-weight: 800; 
+            color: #0f172a; 
+            margin-bottom: 6px; 
+            letter-spacing: -0.5px; 
+        }
+        .subtitle { 
+            color: #64748b; 
+            margin-bottom: 28px; 
+            font-size: 14.5px; 
+        }
+        .role-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+            margin-bottom: 24px; 
+        }
+        .role-card { 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 10px; 
+            padding: 14px 8px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            text-align: center; 
+            background-color: #f8fafc; 
+        }
+        .role-card:hover { 
+            border-color: #3b82f6; 
+            background: #f0f7ff; 
+        }
+        .role-card.active { 
+            border-color: #3b82f6; 
+            background: #eff6ff; 
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08); 
+        }
+        .role-card .role-icon { 
+            font-size: 22px; 
+            margin-bottom: 6px; 
+        }
+        .role-card .role-title { 
+            font-weight: 700; 
+            font-size: 0.85rem; 
+            color: #0f172a; 
+        }
+        .form-label { 
+            font-weight: 600; 
+            color: #334155; 
+            font-size: 13px; 
+            margin-bottom: 6px; 
+        }
+        .form-control { 
+            border-radius: 8px; 
+            padding: 11px 14px; 
+            border: 1.5px solid #cbd5e1; 
+            font-size: 14px; 
+        }
+        .form-control:focus { 
+            border-color: #3b82f6; 
+            box-shadow: none; 
+        }
+        .btn-login { 
+            background: #0f172a; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            padding: 12px; 
+            font-weight: 600; 
+            width: 100%; 
+            margin-top: 16px; 
+            font-size: 15px; 
+            transition: all 0.2s ease; 
+        }
+        .btn-login:hover { 
+            background: #1e293b; 
+        }
+        .error-msg { 
+            color: #ef4444; 
+            font-size: 0.85rem; 
+            margin-top: 8px; 
+            display: none; 
+            font-weight: 600; 
+            text-align: center;
+        }
+        .link-forgot { 
+            color: #3b82f6; 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 13px; 
+        }
+        .link-forgot:hover { 
+            text-decoration: underline; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <!-- Header -->
+    <div class="text-center">
+        <img src="/assets/training_portal/logo.png" alt="C&S Electric Logo" class="logo-img">
+        <div class="system-title">Learning & Competency Management System</div>
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Select your portal and sign in.</p>
+    </div>
+
+    <!-- Role Selection -->
+    <div class="role-grid">
+        <div class="role-card active" onclick="selectRole(this, 'Employee')">
+            <div class="role-icon">👤</div>
+            <div class="role-title">Employee</div>
+        </div>
+        <div class="role-card" onclick="selectRole(this, 'Trainer')">
+            <div class="role-icon">🎓</div>
+            <div class="role-title">Trainer</div>
+        </div>
+        <div class="role-card" onclick="selectRole(this, 'HR Admin')">
+            <div class="role-icon">🛡️</div>
+            <div class="role-title">HR Admin</div>
+        </div>
+    </div>
+
+    <!-- Login Form -->
+    <div>
+        <div class="mb-3">
+            <label class="form-label">Corporate Email Address</label>
+            <input type="email" id="email" class="form-control" placeholder="you@cselectric.com">
+        </div>
+        
+        <div class="mb-2" id="password_field" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label mb-0">Password</label>
+                <a href="/training-portal/forgot-password" class="link-forgot">Forgot Password?</a>
+            </div>
+            <input type="password" id="password" class="form-control" placeholder="••••••••">
+        </div>
+        
+        <div class="error-msg" id="error_msg"></div>
+        <button class="btn-login" id="action_btn" onclick="doContinue()">Continue</button>
+    </div>
+</div>
+
+<script>
+let selectedRole = 'Employee';
+
+function selectRole(el, role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selectedRole = role;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Reset password field state if email changes
+    document.getElementById('email').addEventListener('input', function() {
+        const passwordField = document.getElementById('password_field');
+        const actionBtn = document.getElementById('action_btn');
+        if (passwordField.style.display !== 'none') {
+            passwordField.style.display = 'none';
+            document.getElementById('password').value = '';
+            actionBtn.textContent = 'Continue';
+            actionBtn.setAttribute('onclick', 'doContinue()');
+        }
+    });
+
+    // Support submitting by pressing Enter key
+    document.getElementById('email').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const passwordField = document.getElementById('password_field');
+            if (passwordField.style.display === 'none') {
+                doContinue();
+            } else {
+                doLogin();
+            }
+        }
+    });
+
+    document.getElementById('password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            doLogin();
+        }
+    });
+});
+
+function doContinue() {
+    const email = document.getElementById('email').value.trim();
+    const errorMsg = document.getElementById('error_msg');
+    const actionBtn = document.getElementById('action_btn');
+
+    errorMsg.style.display = 'none';
+
+    if (!email) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Please enter your email address.';
+        return;
+    }
+
+    actionBtn.disabled = true;
+    actionBtn.textContent = 'Checking...';
+
+    fetch(`/api/method/training_portal.training_portal.access_control.check_user_has_password?email=${encodeURIComponent(email)}`)
+    .then(r => r.json())
+    .then(d => {
+        actionBtn.disabled = false;
+        if (d.message && d.message.has_password === false) {
+            // First-time user, redirect to create password page
+            window.location.href = `/training-portal/create-password?email=${encodeURIComponent(email)}&role=${encodeURIComponent(selectedRole)}`;
+        } else {
+            // Existing user, show password field and change action to Sign In
+            const passwordField = document.getElementById('password_field');
+            passwordField.style.display = 'block';
+            document.getElementById('password').focus();
+            actionBtn.textContent = 'Sign In';
+            actionBtn.setAttribute('onclick', 'doLogin()');
+        }
+    })
+    .catch(err => {
+        actionBtn.disabled = false;
+        actionBtn.textContent = 'Continue';
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'An error occurred. Please try again.';
+    });
+}
+
+function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error_msg');
+    const actionBtn = document.getElementById('action_btn');
+
+    errorMsg.style.display = 'none';
+
+    if (!email) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Please enter your email address.';
+        return;
+    }
+
+    if (!password) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Please enter your password.';
+        return;
+    }
+
+    actionBtn.disabled = true;
+    actionBtn.textContent = 'Signing in...';
+
+    fetch("/api/method/training_portal.training_portal.access_control.authenticate_login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password,
+            selected_role: selectedRole
+        })
+    })
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                return Promise.reject(data);
+            }
+            return data;
+        });
+    })
+    .then(data => {
+        if (data.message && data.message.status === 'success') {
+            window.location.href = `/training-portal/verify-otp?email=${encodeURIComponent(email)}&role=${encodeURIComponent(selectedRole)}`;
+        } else {
+            throw new Error('Authentication failed.');
+        }
+    })
+    .catch(err => {
+        actionBtn.disabled = false;
+        actionBtn.textContent = 'Sign In';
+        errorMsg.style.display = 'block';
+        
+        if (err && err._server_messages) {
+            try {
+                const msgs = JSON.parse(err._server_messages);
+                const msg = JSON.parse(msgs[0]).message;
+                errorMsg.textContent = msg;
+            } catch(e) {
+                errorMsg.textContent = 'Invalid credentials or role mapping failed.';
+            }
+        } else if (err && err.exception) {
+            errorMsg.textContent = err.exception;
+        } else {
+            errorMsg.textContent = 'Invalid credentials or role mapping failed.';
+        }
+    });
+}
+</script>
+</body>
+</html>

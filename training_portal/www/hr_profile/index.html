@@ -1,0 +1,205 @@
+{% extends "training_portal/templates/hr_base.html" %}
+
+{% block content_area %}
+<style>
+    .profile-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 40px;
+        margin-bottom: 30px;
+    }
+
+    .profile-hero {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 30px;
+        margin-bottom: 30px;
+    }
+
+    .profile-avatar-large {
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, var(--accent), #60a5fa);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 36px;
+        font-weight: 800;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+    }
+
+    .profile-meta {
+        flex-grow: 1;
+    }
+
+    .profile-name {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0 0 6px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-subtitle {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .info-item {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 16px;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .roles-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        background-color: #f1f5f9;
+        color: var(--primary-light);
+        border: 1px solid var(--border-color);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header-widget mb-4">
+    <div class="page-title-group">
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; margin-bottom: 6px;">My Profile</h1>
+        <p style="color: var(--text-muted); font-size: 15px; margin: 0;">View your system user account profile details</p>
+    </div>
+</div>
+
+<div class="profile-card">
+    <!-- Profile Hero Info -->
+    <div class="profile-hero">
+        <div class="profile-avatar-large">
+            {{ user_info.full_name[0] | upper }}
+        </div>
+        <div class="profile-meta">
+            <h2 class="profile-name">{{ user_info.full_name }}</h2>
+            <p class="profile-subtitle">
+                <span><i class="bi bi-person-fill me-1"></i>{{ user_info.user_type }}</span>
+                <span>•</span>
+                <span><i class="bi bi-envelope-fill me-1"></i>{{ user_info.email }}</span>
+            </p>
+        </div>
+        <div>
+            {% if user_info.enabled %}
+                <span class="badge bg-success-subtle text-success" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-check-circle-fill me-1"></i> Account Enabled
+                </span>
+            {% else %}
+                <span class="badge bg-danger-subtle text-danger" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-x-circle-fill me-1"></i> Account Disabled
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Detailed Profile Details -->
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin: 0 0 20px 0;">Account Information</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Full Name</div>
+            <div class="info-value">{{ user_info.full_name }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Email Address</div>
+            <div class="info-value">{{ user_info.email }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Username</div>
+            <div class="info-value">{{ user_info.username }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Mobile Number</div>
+            <div class="info-value">{{ user_info.mobile_no }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Time Zone</div>
+            <div class="info-value">{{ user_info.time_zone }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Language</div>
+            <div class="info-value">{{ user_info.language | upper }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Account Creation Date</div>
+            <div class="info-value" style="font-weight: 500;">{{ user_info.creation.strftime('%Y-%m-%d %I:%M %p') if user_info.creation else "-" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Last Login Timestamp</div>
+            <div class="info-value" style="font-weight: 500;">{{ user_info.last_login }}</div>
+        </div>
+    </div>
+
+    <!-- Assigned Roles -->
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin: 30px 0 10px 0;">Assigned User Roles</h3>
+    
+    <!-- Primary Roles -->
+    <div class="roles-container mb-3">
+        {% for role in key_roles %}
+            <span class="role-badge" style="background-color: #eff6ff; color: var(--accent); border-color: #bfdbfe;"><i class="bi bi-shield-lock-fill me-1"></i>{{ role }}</span>
+        {% endfor %}
+    </div>
+
+    <!-- Additional Roles (Expandable) -->
+    {% if other_roles %}
+    <details style="margin-top: 15px; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; background-color: #f8fafc;">
+        <summary style="font-weight: 700; font-size: 14.5px; color: var(--primary-light); cursor: pointer; user-select: none; outline: none;">
+            Additional Roles ({{ other_roles | length }}) <span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 8px;">(Click to expand)</span>
+        </summary>
+        <div class="roles-container mt-3" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for role in other_roles %}
+                <span class="role-badge"><i class="bi bi-shield-fill me-1 text-muted"></i>{{ role }}</span>
+            {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+</div>
+{% endblock %}

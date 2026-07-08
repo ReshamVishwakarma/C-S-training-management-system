@@ -1,0 +1,354 @@
+{% extends "templates/web.html" %}
+{% set full_width = true %}
+
+{% block title %}
+HR Portal
+{% endblock %}
+
+{% block navbar %}
+{% endblock %}
+
+{% block page_content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Base styles matching Trainer Portal */
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --bg-canvas: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            background-color: var(--bg-canvas) !important;
+            color: var(--text-main) !important;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Sidebar layout */
+        .portal-wrapper {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .portal-sidebar {
+            width: 280px;
+            background-color: var(--primary);
+            color: #ffffff;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            border-right: 1px solid var(--primary-light);
+            box-shadow: 4px 0 24px rgba(15, 23, 42, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px 24px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--accent), #60a5fa);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        .brand-name {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+            color: #f8fafc;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 24px;
+            flex-grow: 1;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #94a3b8 !important;
+            text-decoration: none !important;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-link i {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .menu-link:hover {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .menu-link:hover i {
+            transform: translateX(3px);
+        }
+
+        .menu-link.active {
+            color: #ffffff !important;
+            background-color: var(--accent);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            font-weight: 600;
+        }
+
+        .menu-link.active i {
+            color: #ffffff;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 16px;
+            margin-top: auto;
+        }
+
+        .user-profile-widget {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #f8fafc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ef4444 !important;
+            text-decoration: none !important;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(239, 68, 68, 0.08);
+        }
+
+        .portal-content {
+            flex-grow: 1;
+            margin-left: 280px;
+            padding: 40px;
+            min-height: 100vh;
+            background-color: var(--bg-canvas);
+            transition: all 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .portal-sidebar {
+                transform: translateX(-100%);
+            }
+            .portal-sidebar.show {
+                transform: translateX(0);
+            }
+            .portal-content {
+                margin-left: 0;
+                padding: 24px;
+            }
+            .mobile-header {
+                display: flex !important;
+            }
+        }
+
+        .mobile-header {
+            display: none;
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 24px;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .toggle-sidebar-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <span class="brand-name">LMS HR Portal</span>
+        <button class="toggle-sidebar-btn" id="mobile-sidebar-toggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+
+    <div class="portal-wrapper">
+        <!-- Sidebar -->
+        <aside class="portal-sidebar" id="portal-sidebar-elem">
+            <div>
+                <div class="brand-section">
+                    <div class="brand-logo">H</div>
+                    <span class="brand-name">HR Portal</span>
+                </div>
+
+                <nav class="sidebar-menu">
+                    <a href="/hr_dashboard" class="menu-link" id="nav-dashboard">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/hr_employee_reports" class="menu-link" id="nav-employee-reports">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Employee Training Report</span>
+                    </a>
+                    <a href="/hr_detailed_reports" class="menu-link" id="nav-detailed-reports">
+                        <i class="bi bi-card-list"></i>
+                        <span>Detailed Attendance Report</span>
+                    </a>
+                    <a href="/hr_summary_reports" class="menu-link" id="nav-summary-reports">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                        <span>Training Summary Report</span>
+                    </a>
+                    <a href="/hr_profile" class="menu-link" id="nav-profile">
+                        <i class="bi bi-person-badge-fill"></i>
+                        <span>My Profile</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-widget">
+                    <div class="user-avatar">
+                        {{ user[0] | upper if user else "A" }}
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">
+                            {{ user or "Administrator" }}
+                        </span>
+                        <span class="user-role">
+                            HR Administrator
+                        </span>
+                    </div>
+                </div>
+                <a href="/logout" class="logout-btn">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="portal-content">
+            {% block content_area %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Auto-highlight active link based on current path
+            const path = window.location.pathname;
+            const links = document.querySelectorAll(".sidebar-menu a");
+            links.forEach(link => {
+                const href = link.getAttribute("href");
+                if (path === href || (href !== "/hr_dashboard" && path.startsWith(href))) {
+                    link.classList.add("active");
+                }
+            });
+
+            // Mobile sidebar toggle
+            const toggleBtn = document.getElementById("mobile-sidebar-toggle");
+            const sidebar = document.getElementById("portal-sidebar-elem");
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle("show");
+                });
+                document.addEventListener("click", function(e) {
+                    if (sidebar.classList.contains("show") && !sidebar.contains(e.target) && e.target !== toggleBtn) {
+                        sidebar.classList.remove("show");
+                    }
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+{% endblock %}
