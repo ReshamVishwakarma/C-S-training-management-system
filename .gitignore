@@ -1,0 +1,90 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tosca/
+.pytest_cache/
+.pytest/
+.cache/
+.ipynb_checkpoints/
+.tox/
+.nosexy/
+.noseids/
+.coverage
+.coverage.*
+.conftest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.pypy/
+.ruff_cache/
+.ipynb_checkpoints/
+ipython_log.py*
+
+# Translations
+*.mo
+*.pot
+
+# Logs
+*.log
+
+# Environments
+.python-version
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+
+# Frappe specific ignores
+node_modules/
+/site/
+.DS_Store
