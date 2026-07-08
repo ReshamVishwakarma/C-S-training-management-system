@@ -1,0 +1,163 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:training_session",
+ "creation": "2026-06-08 15:12:20.559644",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "training_session",
+  "date",
+  "trainer",
+  "department",
+  "total_participants",
+  "present_count",
+  "absent_count",
+  "marked_by",
+  "uploaded_filename",
+  "upload_timestamp",
+  "unknown_employee_logs",
+  "attendance_details",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "training_session",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Training Session",
+   "options": "Training Session",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "training_session.training_date",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "training_session.trainer",
+   "fieldname": "trainer",
+   "fieldtype": "Link",
+   "label": "Trainer",
+   "options": "Trainer"
+  },
+  {
+   "fetch_from": "training_session.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "total_participants",
+   "fieldtype": "Int",
+   "label": "Total Participants",
+   "read_only": 1
+  },
+  {
+   "fieldname": "present_count",
+   "fieldtype": "Int",
+   "label": "Present Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "absent_count",
+   "fieldtype": "Int",
+   "label": "Absent Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "marked_by",
+   "fieldtype": "Link",
+   "label": "Marked By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "uploaded_filename",
+   "fieldtype": "Data",
+   "label": "Uploaded Filename",
+   "read_only": 1
+  },
+  {
+   "fieldname": "upload_timestamp",
+   "fieldtype": "Datetime",
+   "label": "Upload Timestamp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unknown_employee_logs",
+   "fieldtype": "Long Text",
+   "label": "Unknown Employee Logs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Training Attendance",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "attendance_details",
+   "fieldtype": "Table",
+   "label": "Attendance Details",
+   "options": "Attendance detail"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+
+ "modified": "2026-06-11 10:35:37.699977",
+ 
+
+ "modified_by": "Administrator",
+ "module": "Training Portal",
+ "name": "Training Attendance",
+ "naming_rule": "",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Trainer",
+   "share": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "training_session",
+ "track_changes": 1
+}

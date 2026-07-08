@@ -1,0 +1,81 @@
+{% extends "templates/web.html" %}
+
+{% block title %}
+Manager Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<style>
+.dashboard-header{
+    background:#1f4d7a;
+    color:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:25px;
+}
+
+.dashboard-header h2,
+.dashboard-header p{
+    color:white;
+}
+
+.stat-card{
+    border:none;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    transition:.2s;
+}
+
+.stat-card:hover{
+    transform:translateY(-3px);
+}
+
+.stat-number{
+    font-size:2rem;
+    font-weight:700;
+}
+</style>
+
+<div class="container mt-4">
+
+    <div class="dashboard-header">
+        <h2>Department Manager Dashboard</h2>
+        <p>Welcome {{ user }}</p>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-primary">25</div>
+                <div>Team Members</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-warning">4</div>
+                <div>Pending Approvals</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-success">18</div>
+                <div>Completed Trainings</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card p-3 text-center">
+                <div class="stat-number text-danger">88%</div>
+                <div>Competency Score</div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

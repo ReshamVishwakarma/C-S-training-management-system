@@ -1,4 +1,4 @@
-# C&S Training Management Portal
+# C&S Training Management System
 
 Learning Management System (LMS) built using Frappe Framework for C&S Electric.
 
@@ -8,25 +8,23 @@ Learning Management System (LMS) built using Frappe Framework for C&S Electric.
 - Trainer
 - Trainee
 
-## Core Modules
+## Modules
 
 - Course Management
 - Training Sessions
-- Enrollment Management
-- Attendance Tracking
-- Assessments & Quizzes
-- Certificate Generation
-- Feedback System
-- Analytics & Reports
+- Enrollment
+- Attendance
+- Assessments
+- Certificates
+- Feedback
+- Reports & Dashboards
 
-## Technology Stack
+## Tech Stack
 
 - Frappe Framework
 - MariaDB
 - Python
-- JavaScript
 
-## Team
+## Repository
 
-- Resham Vishwakarma
-- Sandhya Kumari
+C-S-training-management-system

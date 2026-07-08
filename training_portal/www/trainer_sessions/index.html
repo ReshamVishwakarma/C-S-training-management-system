@@ -1,0 +1,274 @@
+{% extends "training_portal/templates/trainer_base.html" %}
+
+{% block content_area %}
+<style>
+    .sessions-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .kpi-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .kpi-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kpi-value {
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--primary);
+    }
+
+    .kpi-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+
+    .kpi-blue .kpi-icon { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .kpi-amber .kpi-icon { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .kpi-green .kpi-icon { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .kpi-purple .kpi-icon { background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+
+    /* Search bar styles */
+    .filter-section {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex-grow: 1;
+        min-width: 250px;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-card);
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .lms-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .lms-table th {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 20px;
+        background-color: #f8fafc;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .lms-table td {
+        padding: 18px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+
+    .lms-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-scheduled { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .status-ongoing { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .status-completed { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .status-cancelled { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .status-draft { background-color: rgba(100, 116, 139, 0.1); color: #64748b; }
+</style>
+
+<!-- Page Header -->
+<div class="page-header-widget">
+    <div class="page-title-group">
+        <h1>Training Sessions</h1>
+        <p>List of sessions led by you</p>
+    </div>
+    <div>
+        <a href="/assign_training" class="btn btn-primary" style="border-radius: 10px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-plus-lg"></i> Schedule & Assign Training
+        </a>
+    </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="sessions-kpi-grid">
+    <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="bi bi-journal-text"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ total_sessions }}</span>
+            <span class="kpi-label">Total Sessions</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-amber">
+        <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ today_sessions }}</span>
+            <span class="kpi-label">Today's Sessions</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-purple">
+        <div class="kpi-icon"><i class="bi bi-calendar-range"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ upcoming_sessions }}</span>
+            <span class="kpi-label">Upcoming Sessions</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ completed_sessions }}</span>
+            <span class="kpi-label">Completed Sessions</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Sessions Registry Card -->
+<div class="lms-card">
+    <!-- Filters / Search -->
+    <div class="filter-section">
+        <div class="search-input-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" id="session-search" class="search-input" placeholder="Search sessions by name, date, or status...">
+        </div>
+    </div>
+
+    <!-- Sessions List -->
+    {% if sessions %}
+        <div class="table-responsive">
+            <table class="lms-table" id="sessions-table-elem">
+                <thead>
+                    <tr>
+                        <th>Session Name</th>
+                        <th>Scheduled Date</th>
+                        <th>Delivery Mode</th>
+                        <th>Session Status</th>
+                        <th style="width: 120px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                        <tr class="session-row-item">
+                            <td class="session-name-cell" style="font-weight: 600; color: var(--primary);">
+                                {{ session.training_name }}
+                            </td>
+                            <td class="session-date-cell" style="color: var(--text-muted);">
+                                <i class="bi bi-calendar3 me-2"></i>{{ session.training_date }}
+                            </td>
+                            <td>
+                                {% if session.training_mode == 'Online' %}
+                                    <span class="badge bg-light text-primary" style="font-weight: 600; padding: 6px 12px; border-radius: 6px;">
+                                        <i class="bi bi-laptop me-1"></i> Online
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-success" style="font-weight: 600; padding: 6px 12px; border-radius: 6px;">
+                                        <i class="bi bi-building me-1"></i> Offline
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="session-status-cell">
+                                {% set status_lower = session.status | lower %}
+                                <span class="status-badge status-{{ status_lower }}">
+                                    <i class="bi bi-circle-fill" style="font-size: 6px;"></i>
+                                    {{ session.status }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="/trainer_session_details?session={{ session.name }}" class="btn btn-sm btn-outline-dark" style="border-radius: 8px; font-weight: 600; padding: 6px 12px; font-size: 13px;">
+                                    View details
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x" style="font-size: 48px; color: var(--text-muted); opacity: 0.5;"></i>
+            <p class="mt-3 text-muted" style="font-size: 14px;">No training sessions scheduled.</p>
+            <a href="/assign_training" class="btn btn-primary btn-sm mt-2" style="border-radius: 8px;">Schedule First Session</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("session-search");
+        const rows = document.querySelectorAll(".session-row-item");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

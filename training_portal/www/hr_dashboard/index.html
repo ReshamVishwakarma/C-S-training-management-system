@@ -1,0 +1,156 @@
+{% extends "training_portal/templates/hr_base.html" %}
+
+{% block content_area %}
+<style>
+.dashboard-header {
+    background: #1f4d7a;
+    color: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+}
+
+.dashboard-header h2,
+.dashboard-header p {
+    color: white;
+    margin: 0;
+}
+
+.dashboard-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+}
+
+.dashboard-header p {
+    font-size: 15px;
+    opacity: 0.9;
+}
+
+.stat-card {
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--bg-card);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-number {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+
+<div class="dashboard-header">
+    <h2>HR Dashboard</h2>
+    <p>Welcome, {{ user }}</p>
+</div>
+
+<div class="row">
+
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card p-4 text-center">
+            <div class="stat-number text-primary">
+                {{ total_employees }}
+            </div>
+            <div class="stat-label">Employees</div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card p-4 text-center">
+            <div class="stat-number text-success">
+                {{ total_trainers }}
+            </div>
+            <div class="stat-label">Trainers</div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card p-4 text-center">
+            <div class="stat-number text-warning">
+                {{ total_courses }}
+            </div>
+            <div class="stat-label">Courses</div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card p-4 text-center">
+            <div class="stat-number text-danger">
+                92%
+            </div>
+            <div class="stat-label">Attendance</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Reports & Analytics Section -->
+<h3 class="mt-4 mb-4" style="font-weight: 700; color: var(--primary); letter-spacing: -0.5px;">Reports & Analytics</h3>
+<div class="row">
+    <!-- Card 1: Employee Training Report -->
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background-color: #eff6ff; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 20px; margin-bottom: 16px;">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h4 style="font-weight: 700; font-size: 16px; color: var(--primary); margin-bottom: 8px;">Employee Training Report</h4>
+                <p class="text-muted" style="font-size: 13.5px; line-height: 1.5; margin: 0;">Monitor employee monthly training hour completion, total hours, and aggregated metrics.</p>
+            </div>
+            <a href="/hr_employee_reports" class="btn btn-primary w-100 py-2 mt-3 font-weight-bold" style="border-radius: 8px; font-size: 13px; background-color: var(--accent); border-color: var(--accent);">
+                Open Report <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Card 2: Detailed Attendance Report -->
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background-color: #ecfdf5; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 20px; margin-bottom: 16px;">
+                    <i class="bi bi-card-list"></i>
+                </div>
+                <h4 style="font-weight: 700; font-size: 16px; color: var(--primary); margin-bottom: 8px;">Detailed Attendance Report</h4>
+                <p class="text-muted" style="font-size: 13.5px; line-height: 1.5; margin: 0;">Access complete session-level records containing employee profiles, designation, trainer, and mode.</p>
+            </div>
+            <a href="/hr_detailed_reports" class="btn btn-success w-100 py-2 mt-3 font-weight-bold" style="border-radius: 8px; font-size: 13px; background-color: #10b981; border-color: #10b981;">
+                Open Report <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Card 3: Training Summary Report -->
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background-color: #fffbeb; display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 20px; margin-bottom: 16px;">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                </div>
+                <h4 style="font-weight: 700; font-size: 16px; color: var(--primary); margin-bottom: 8px;">Training Summary Report</h4>
+                <p class="text-muted" style="font-size: 13.5px; line-height: 1.5; margin: 0;">View high-level summary KPIs and metrics aggregated by course category and sessions.</p>
+            </div>
+            <a href="/hr_summary_reports" class="btn btn-warning w-100 py-2 mt-3 font-weight-bold" style="border-radius: 8px; font-size: 13px; background-color: #f59e0b; border-color: #f59e0b; color: white;">
+                Open Report <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
